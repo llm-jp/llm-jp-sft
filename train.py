@@ -1,23 +1,36 @@
 import argparse
 import logging
 import os
-import glob
 
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments
 from trl import SFTTrainer, DataCollatorForCompletionOnlyLM
-from datasets import load_dataset
+from datasets import load_dataset, disable_caching
+
+disable_caching()
 
 logger = logging.getLogger(__name__)
+
+
+def formatting_prompts_func(example):
+    output_texts = []
+    for i in range(len(example["instruction"])):
+        text = ""
+        if "input" in example and example["input"][i]:
+            text += f"{example['input'][i]}\n\n"
+        text += f"{example['instruction'][i]} ### Response: {example['output'][i]}"
+        output_texts.append(text)
+    return output_texts
 
 
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--data_path", type=str, help="Path to the data directory")
+    parser.add_argument("--data_files", nargs="+", help="Path to the data files")
     parser.add_argument("--model_name_or_path", type=str, help="Path to pretrained model or model identifier")
     parser.add_argument("--output_dir", type=str, help="Path to output directory")
     parser.add_argument("--tokenizer_name_or_path", type=str, default=None, help="Path to pretrained tokenizer or tokenizer identifier")
     args = parser.parse_args()
-    
+
     logger.info(f"Loading model from {args.model_name_or_path}")
     model = AutoModelForCausalLM.from_pretrained(args.model_name_or_path)
 
@@ -26,22 +39,34 @@ def main() -> None:
     tokenizer = AutoTokenizer.from_pretrained(tokenizer_name_or_path)
 
     logger.info(f"Loading data from {args.data_path}")
-    data_files = [path for path in glob.glob(os.path.join(args.data_path, "*.jsonl"))]
+    data_files = [os.path.join(args.data_path, data_file) for data_file in args.data_files]
     assert len(data_files) > 0, "No data files found"
     dataset = load_dataset("json", data_files=data_files)
 
     logger.info("Formatting prompts")
     response_template = "### Response:"
-    response_template_tokens = tokenizer.encode(response_template, add_special_tokens=False)[1:]
-    collator = DataCollatorForCompletionOnlyLM(response_template_tokens, tokenizer=tokenizer)
+    collator = DataCollatorForCompletionOnlyLM(response_template, tokenizer=tokenizer)
 
     logger.info("Setting up trainer")
+    training_args = TrainingArguments(
+        output_dir=args.output_dir,
+        overwrite_output_dir=True,
+        num_train_epochs=3,
+        per_device_train_batch_size=4,
+        gradient_accumulation_steps=2,
+        learning_rate=1e-5,
+        lr_scheduler_type="cosine",
+        fp16=True,
+    )
+
     trainer = SFTTrainer(
         model,
+        args=training_args,
         tokenizer=tokenizer,
         train_dataset=dataset["train"],
-        dataset_text_field="text",
+        formatting_func=formatting_prompts_func,
         data_collator=collator,
+        max_seq_length=512,
     )
 
     logger.info("Training")
