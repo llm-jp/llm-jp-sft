@@ -51,12 +51,13 @@ def main() -> None:
     training_args = TrainingArguments(
         output_dir=args.output_dir,
         overwrite_output_dir=True,
-        num_train_epochs=3,
+        num_train_epochs=1,
         per_device_train_batch_size=4,
         gradient_accumulation_steps=2,
         learning_rate=1e-5,
         lr_scheduler_type="cosine",
         fp16=True,
+        ddp_backend="nccl",
     )
 
     trainer = SFTTrainer(
@@ -66,7 +67,7 @@ def main() -> None:
         train_dataset=dataset["train"],
         formatting_func=formatting_prompts_func,
         data_collator=collator,
-        max_seq_length=512,
+        max_seq_length=256,
     )
 
     logger.info("Training")
