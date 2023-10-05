@@ -3,3 +3,4 @@ transformers
 trl
 peft
 sentencepiece
+wandb
