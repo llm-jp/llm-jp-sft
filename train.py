@@ -2,9 +2,11 @@ import argparse
 import logging
 import os
 
-from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments
+from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, get_cosine_schedule_with_warmup
 from trl import SFTTrainer, DataCollatorForCompletionOnlyLM
 from datasets import load_dataset, disable_caching
+
+from lion import Lion
 
 disable_caching()
 
@@ -35,19 +37,23 @@ def main() -> None:
     response_template = "回答："
     collator = DataCollatorForCompletionOnlyLM(response_template, tokenizer=tokenizer)
 
+    optimizer = Lion(filter(lambda p: p.requires_grad, model.parameters()), lr=1e-5)
+    num_total_steps = len(dataset["train"]) // 32
+    scheduler = get_cosine_schedule_with_warmup(optimizer, num_total_steps // 10, num_total_steps)
+
     logger.info("Setting up trainer")
     training_args = TrainingArguments(
         output_dir=args.output_dir,
         overwrite_output_dir=True,
         num_train_epochs=1,
-        per_device_train_batch_size=1,
-        gradient_accumulation_steps=8,
-        learning_rate=1e-5,
-        warmup_ratio=0.1,
-        lr_scheduler_type="cosine",
+        per_device_train_batch_size=8,
+        gradient_accumulation_steps=4,
+        # learning_rate=1e-5,
+        # warmup_ratio=0.1,
+        # lr_scheduler_type="cosine",
         fp16=True,
         save_steps=50_000,
-        logging_steps=50,
+        logging_steps=10,
         report_to="wandb",
     )
 
@@ -59,6 +65,7 @@ def main() -> None:
         dataset_text_field="text",
         data_collator=collator,
         max_seq_length=512,
+        optimizers=(optimizer, scheduler),
     )
 
     logger.info("Training")
