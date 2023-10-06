@@ -20,7 +20,7 @@ def main() -> None:
     args = parser.parse_args()
 
     logger.info(f"Loading model from {args.model_name_or_path}")
-    model = AutoModelForCausalLM.from_pretrained(args.model_name_or_path)
+    model = AutoModelForCausalLM.from_pretrained(args.model_name_or_path, device_map="auto")
 
     logger.info(f"Loading tokenizer from {args.tokenizer_name_or_path}")
     tokenizer_name_or_path: str = args.tokenizer_name_or_path or args.model_name_or_path
