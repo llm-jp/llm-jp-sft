@@ -20,6 +20,8 @@ async-timeout==4.0.3
     # via aiohttp
 attrs==23.1.0
     # via aiohttp
+bitsandbytes==0.41.1
+    # via -r requirements.in
 certifi==2023.7.22
     # via
     #   requests
