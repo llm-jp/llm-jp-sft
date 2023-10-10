@@ -36,6 +36,8 @@ cmake==3.27.5
     # via triton
 datasets==2.14.5
     # via trl
+deepspeed==0.11.1
+    # via -r requirements.in
 dill==0.3.7
     # via
     #   datasets
@@ -60,6 +62,8 @@ gitdb==4.0.10
     # via gitpython
 gitpython==3.1.37
     # via wandb
+hjson==3.1.0
+    # via deepspeed
 huggingface-hub==0.17.2
     # via
     #   accelerate
@@ -85,10 +89,13 @@ multiprocess==0.70.15
     # via datasets
 networkx==3.1
     # via torch
+ninja==1.11.1.1
+    # via deepspeed
 numpy==1.26.0
     # via
     #   accelerate
     #   datasets
+    #   deepspeed
     #   pandas
     #   peft
     #   pyarrow
@@ -123,6 +130,7 @@ packaging==23.1
     # via
     #   accelerate
     #   datasets
+    #   deepspeed
     #   huggingface-hub
     #   peft
     #   transformers
@@ -137,10 +145,15 @@ protobuf==4.24.4
 psutil==5.9.5
     # via
     #   accelerate
+    #   deepspeed
     #   peft
     #   wandb
+py-cpuinfo==9.0.0
+    # via deepspeed
 pyarrow==13.0.0
     # via datasets
+pydantic==1.10.13
+    # via deepspeed
 python-dateutil==2.8.2
     # via pandas
 pytz==2023.3.post1
@@ -186,12 +199,14 @@ torch==2.0.1
     # via
     #   -r requirements.in
     #   accelerate
+    #   deepspeed
     #   peft
     #   triton
     #   trl
 tqdm==4.66.1
     # via
     #   datasets
+    #   deepspeed
     #   huggingface-hub
     #   peft
     #   transformers
@@ -207,6 +222,7 @@ trl==0.7.1
 typing-extensions==4.8.0
     # via
     #   huggingface-hub
+    #   pydantic
     #   torch
 tzdata==2023.3
     # via pandas
