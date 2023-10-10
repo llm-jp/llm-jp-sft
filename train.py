@@ -3,7 +3,9 @@ import logging
 
 from datasets import disable_caching, load_dataset
 from transformers import AutoTokenizer, TrainingArguments
-from trl import DataCollatorForCompletionOnlyLM, SFTTrainer
+from trl import DataCollatorForCompletionOnlyLM
+
+from trainer import CustomSFTTrainer
 
 disable_caching()
 
@@ -28,7 +30,7 @@ def main() -> None:
     parser.add_argument(
         "--num_train_epochs",
         type=int,
-        default=1.0,
+        default=1,
         help="Number of train epochs",
     )
     parser.add_argument(
@@ -40,7 +42,7 @@ def main() -> None:
     parser.add_argument(
         "--global_train_batch_size",
         type=int,
-        default=64,
+        default=32,
         help="Global batch size for training",
     )
     parser.add_argument(
@@ -75,17 +77,19 @@ def main() -> None:
         gradient_accumulation_steps=(
             args.global_train_batch_size // args.per_device_train_batch_size
         ),
+        # lion_32bit will not use one implemended in bnb since it is not able to
+        # use with DeepSpeed Zero-3.
         optim="adamw_torch" if not args.use_lionw else "lion_32bit",
         learning_rate=args.learning_rate,
         warmup_ratio=args.warmup_ratio,
         lr_scheduler_type="cosine",
         bf16=True,
         save_steps=50_000,
-        logging_steps=10,
+        logging_steps=1,
         report_to="wandb",
     )
 
-    trainer = SFTTrainer(
+    trainer = CustomSFTTrainer(
         args.model_name_or_path,
         args=training_args,
         tokenizer=tokenizer,
