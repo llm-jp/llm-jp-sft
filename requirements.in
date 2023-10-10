@@ -5,4 +5,5 @@ peft
 sentencepiece
 wandb
 bitsandbytes
+scipy
 deepspeed

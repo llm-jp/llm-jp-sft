@@ -99,6 +99,7 @@ numpy==1.26.0
     #   pandas
     #   peft
     #   pyarrow
+    #   scipy
     #   transformers
     #   trl
 nvidia-cublas-cu11==11.10.3.66
@@ -179,6 +180,8 @@ safetensors==0.3.3
     # via
     #   peft
     #   transformers
+scipy==1.11.3
+    # via -r requirements.in
 sentencepiece==0.1.99
     # via -r requirements.in
 sentry-sdk==1.31.0
