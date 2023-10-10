@@ -1,13 +1,16 @@
 import logging
 
-from transformers.trainer import get_parameter_names, ALL_LAYERNORM_LAYERS, OptimizerNames
+from transformers.trainer import (
+    get_parameter_names,
+    ALL_LAYERNORM_LAYERS,
+    OptimizerNames,
+)
 from trl import SFTTrainer
 
 logger = logging.getLogger(__name__)
 
 
 class CustomSFTTrainer(SFTTrainer):
-
     def create_optimizer_and_scheduler(self, num_training_steps: int):
         """
         Setup the optimizer and the learning rate scheduler.
@@ -17,7 +20,9 @@ class CustomSFTTrainer(SFTTrainer):
         `create_scheduler`) in a subclass.
         """
         self.create_optimizer()
-        self.create_scheduler(num_training_steps=num_training_steps, optimizer=self.optimizer)
+        self.create_scheduler(
+            num_training_steps=num_training_steps, optimizer=self.optimizer
+        )
 
     def create_optimizer(self):
         """
@@ -34,13 +39,17 @@ class CustomSFTTrainer(SFTTrainer):
             optimizer_grouped_parameters = [
                 {
                     "params": [
-                        p for n, p in opt_model.named_parameters() if (n in decay_parameters and p.requires_grad)
+                        p
+                        for n, p in opt_model.named_parameters()
+                        if (n in decay_parameters and p.requires_grad)
                     ],
                     "weight_decay": self.args.weight_decay,
                 },
                 {
                     "params": [
-                        p for n, p in opt_model.named_parameters() if (n not in decay_parameters and p.requires_grad)
+                        p
+                        for n, p in opt_model.named_parameters()
+                        if (n not in decay_parameters and p.requires_grad)
                     ],
                     "weight_decay": 0.0,
                 },
@@ -52,12 +61,16 @@ class CustomSFTTrainer(SFTTrainer):
             }
             if self.args.optim == OptimizerNames.ADAMW_TORCH:
                 from torch.optim import AdamW
+
                 optimizer_cls = AdamW
                 optimizer_kwargs["eps"] = self.args.adam_epsilon
             elif self.args.optim == OptimizerNames.LION:
                 from lion import Lion
+
                 optimizer_cls = Lion
-            
-            self.optimizer = optimizer_cls(optimizer_grouped_parameters, **optimizer_kwargs)
+
+            self.optimizer = optimizer_cls(
+                optimizer_grouped_parameters, **optimizer_kwargs
+            )
 
         return self.optimizer
