@@ -178,3 +178,4 @@ pyrightconfig.json
 data/
 dataset
 models/
+wandb/
