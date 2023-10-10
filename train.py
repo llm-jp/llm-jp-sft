@@ -2,11 +2,7 @@ import argparse
 import logging
 
 from datasets import disable_caching, load_dataset
-from transformers import (
-    AutoModelForCausalLM,
-    AutoTokenizer,
-    TrainingArguments,
-)
+from transformers import AutoTokenizer, TrainingArguments
 from trl import DataCollatorForCompletionOnlyLM, SFTTrainer
 
 disable_caching()
@@ -59,25 +55,16 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    logger.info(f"Loading model from {args.model_name_or_path}")
-    model = AutoModelForCausalLM.from_pretrained(args.model_name_or_path)
-
     logger.info(f"Loading tokenizer from {args.tokenizer_name_or_path}")
     tokenizer_name_or_path: str = args.tokenizer_name_or_path or args.model_name_or_path
     tokenizer = AutoTokenizer.from_pretrained(tokenizer_name_or_path)
 
     logger.info(f"Loading data")
-    data_files = args.data_files
-    assert len(data_files) > 0, "No data files found"
-    dataset = load_dataset("json", data_files=data_files)
+    dataset = load_dataset("json", data_files=args.data_files)
 
     logger.info("Formatting prompts")
     response_template = "回答："
     collator = DataCollatorForCompletionOnlyLM(response_template, tokenizer=tokenizer)
-
-    gradient_accumulation_steps = (
-        args.global_train_batch_size // args.per_device_train_batch_size
-    )
 
     logger.info("Setting up trainer")
     training_args = TrainingArguments(
@@ -85,19 +72,21 @@ def main() -> None:
         overwrite_output_dir=True,
         num_train_epochs=args.num_train_epochs,
         per_device_train_batch_size=args.per_device_train_batch_size,
-        gradient_accumulation_steps=gradient_accumulation_steps,
-        optim="lion_32bit" if args.use_lionw else "adamw_torch",
+        gradient_accumulation_steps=(
+            args.global_train_batch_size // args.per_device_train_batch_size
+        ),
+        optim="adamw_torch" if not args.use_lionw else "lion_32bit",
         learning_rate=args.learning_rate,
         warmup_ratio=args.warmup_ratio,
         lr_scheduler_type="cosine",
-        fp16=True,
+        bf16=True,
         save_steps=50_000,
         logging_steps=10,
         report_to="wandb",
     )
 
     trainer = SFTTrainer(
-        model,
+        args.model_name_or_path,
         args=training_args,
         tokenizer=tokenizer,
         train_dataset=dataset["train"],
@@ -115,7 +104,7 @@ def main() -> None:
 
 if __name__ == "__main__":
     logging.basicConfig(
-        level=logging.INFO,
+        level=logging.DEBUG,
         format="%(asctime)s %(name)s:%(lineno)d: %(levelname)s: %(message)s",
     )
     main()
