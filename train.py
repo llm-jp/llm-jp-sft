@@ -30,13 +30,13 @@ def main() -> None:
     parser.add_argument(
         "--num_train_epochs",
         type=int,
-        default=1,
+        default=2,
         help="Number of train epochs",
     )
     parser.add_argument(
         "--per_device_train_batch_size",
         type=int,
-        default=8,
+        default=4,
         help="Batch size per GPU/TPU core/CPU for training",
     )
     parser.add_argument(
