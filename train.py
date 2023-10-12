@@ -34,7 +34,7 @@ def main() -> None:
     parser.add_argument(
         "--per_device_train_batch_size",
         type=int,
-        default=4,
+        default=1,
         help="Batch size per GPU/TPU core/CPU for training",
     )
     parser.add_argument(
@@ -48,7 +48,7 @@ def main() -> None:
     )
     parser.add_argument("--warmup_ratio", type=float, default=0.1, help="Warmup ratio")
     parser.add_argument(
-        "--max_seq_length", type=int, default=512, help="Maximum sequence length"
+        "--max_seq_length", type=int, default=2048, help="Maximum sequence length"
     )
     args = parser.parse_args()
 
