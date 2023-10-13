@@ -68,6 +68,7 @@ huggingface-hub==0.17.2
     # via
     #   accelerate
     #   datasets
+    #   tokenizers
     #   transformers
 idna==3.4
     # via
@@ -196,8 +197,10 @@ smmap==5.0.1
     # via gitdb
 sympy==1.12
     # via torch
-tokenizers==0.13.3
-    # via transformers
+tokenizers==0.14.1
+    # via
+    #   -r requirements.in
+    #   transformers
 torch==2.0.1
     # via
     #   -r requirements.in
@@ -213,7 +216,7 @@ tqdm==4.66.1
     #   huggingface-hub
     #   peft
     #   transformers
-transformers==4.33.2
+transformers==4.34.0
     # via
     #   -r requirements.in
     #   peft
