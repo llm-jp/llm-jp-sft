@@ -19,6 +19,14 @@ class ExtraArguments:
     max_seq_length: int = 2048
 
 
+def formatting_prompts_func(example):
+    output_texts = []
+    for i in range(len(example["text"])):
+        text = example["text"][i].replace("### 応答：", "### 回答：")
+        output_texts.append(text)
+    return output_texts
+
+
 def main() -> None:
     parser = HfArgumentParser((TrainingArguments, ExtraArguments))
     training_args, extra_args = parser.parse_args_into_dataclasses()
@@ -41,7 +49,7 @@ def main() -> None:
         args=training_args,
         tokenizer=tokenizer,
         train_dataset=dataset["train"],
-        dataset_text_field="text",
+        formatting_func=formatting_prompts_func,
         data_collator=collator,
         max_seq_length=extra_args.max_seq_length,
     )
