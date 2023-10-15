@@ -32,7 +32,7 @@ def main() -> None:
     dataset = load_dataset("json", data_files=extra_args.data_files)
 
     logger.info("Formatting prompts")
-    response_template = "応答："
+    response_template = "回答："
     collator = DataCollatorForCompletionOnlyLM(response_template, tokenizer=tokenizer)
 
     logger.info("Setting up trainer")
