@@ -2,7 +2,7 @@ import logging
 from dataclasses import dataclass
 from typing import Optional
 
-from datasets import disable_caching, load_dataset
+from datasets import disable_caching, load_dataset, concatenate_datasets
 from transformers import AutoTokenizer, TrainingArguments, HfArgumentParser
 from trl import DataCollatorForCompletionOnlyLM, SFTTrainer
 
@@ -27,6 +27,16 @@ def formatting_prompts_func(example):
     return output_texts
 
 
+def load_datasets(data_files):
+    datasets = []
+    for data_file in data_files:
+        dataset = load_dataset("json", data_files=data_file)
+        dataset = dataset["train"]
+        dataset = dataset.select_columns("text")
+        datasets.append(dataset)
+    return concatenate_datasets(datasets)
+
+
 def main() -> None:
     parser = HfArgumentParser((TrainingArguments, ExtraArguments))
     training_args, extra_args = parser.parse_args_into_dataclasses()
@@ -37,7 +47,7 @@ def main() -> None:
 
     logger.info(f"Loading data")
 
-    dataset = load_dataset("json", data_files=extra_args.data_files)
+    dataset = load_datasets(extra_args.data_files)
 
     logger.info("Formatting prompts")
     response_template = "回答："
@@ -48,7 +58,7 @@ def main() -> None:
         extra_args.model_name_or_path,
         args=training_args,
         tokenizer=tokenizer,
-        train_dataset=dataset["train"],
+        train_dataset=dataset,
         formatting_func=formatting_prompts_func,
         data_collator=collator,
         max_seq_length=extra_args.max_seq_length,
