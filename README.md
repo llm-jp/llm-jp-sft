@@ -14,6 +14,16 @@ pip install -r requirements.txt
 
 ```bash
 accelerate launch --config_file accelerate_config.yaml train.py \
+    --num_train_epochs 2 \
+    --per_device_train_batch_size 1 \
+    --gradient_accumulation_steps 32 \
+    --learning_rate 1e-5 \
+    --warmup_ratio 0.1 \
+    --lr_scheduler cosine \
+    --bf16 \
+    --save_steps 50000 \
+    --logging_steps 1 \
+    --report_to wandb \
     --data_files <path to jamp.json> <path to janli.json> ... \
     --model_name_or_path <path to HF model> \
     --tokenizer_name_or_path <path to HF tokenizer> \

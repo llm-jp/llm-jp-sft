@@ -1,8 +1,9 @@
-import argparse
 import logging
+from dataclasses import dataclass
+from typing import Optional
 
 from datasets import disable_caching, load_dataset
-from transformers import AutoTokenizer, TrainingArguments
+from transformers import AutoTokenizer, TrainingArguments, HfArgumentParser
 from trl import DataCollatorForCompletionOnlyLM, SFTTrainer
 
 disable_caching()
@@ -10,92 +11,46 @@ disable_caching()
 logger = logging.getLogger(__name__)
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--data_files", nargs="+", help="Path to the data files")
-    parser.add_argument(
-        "--model_name_or_path",
-        type=str,
-        help="Path to pretrained model or model identifier",
-    )
-    parser.add_argument("--output_dir", type=str, help="Path to output directory")
-    parser.add_argument(
-        "--tokenizer_name_or_path",
-        type=str,
-        default=None,
-        help="Path to pretrained tokenizer or tokenizer identifier",
-    )
-    parser.add_argument(
-        "--num_train_epochs",
-        type=int,
-        default=2,
-        help="Number of train epochs",
-    )
-    parser.add_argument(
-        "--per_device_train_batch_size",
-        type=int,
-        default=1,
-        help="Batch size per GPU/TPU core/CPU for training",
-    )
-    parser.add_argument(
-        "--global_train_batch_size",
-        type=int,
-        default=32,
-        help="Global batch size for training",
-    )
-    parser.add_argument(
-        "--learning_rate", type=float, default=1e-5, help="Learning rate"
-    )
-    parser.add_argument("--warmup_ratio", type=float, default=0.1, help="Warmup ratio")
-    parser.add_argument(
-        "--max_seq_length", type=int, default=2048, help="Maximum sequence length"
-    )
-    args = parser.parse_args()
+@dataclass
+class ExtraArguments:
+    data_files: list[str]
+    model_name_or_path: str
+    tokenizer_name_or_path: Optional[str] = None
+    max_seq_length: int = 2048
 
-    logger.info(f"Loading tokenizer from {args.tokenizer_name_or_path}")
-    tokenizer_name_or_path: str = args.tokenizer_name_or_path or args.model_name_or_path
+
+def main() -> None:
+    parser = HfArgumentParser((TrainingArguments, ExtraArguments))
+    training_args, extra_args = parser.parse_args_into_dataclasses()
+
+    logger.info(f"Loading tokenizer from {extra_args.tokenizer_name_or_path}")
+    tokenizer_name_or_path: str = extra_args.tokenizer_name_or_path or extra_args.model_name_or_path
     tokenizer = AutoTokenizer.from_pretrained(tokenizer_name_or_path)
 
     logger.info(f"Loading data")
-    dataset = load_dataset("json", data_files=args.data_files)
+
+    dataset = load_dataset("json", data_files=extra_args.data_files)
 
     logger.info("Formatting prompts")
-    response_template = "回答："
+    response_template = "応答："
     collator = DataCollatorForCompletionOnlyLM(response_template, tokenizer=tokenizer)
 
     logger.info("Setting up trainer")
-    training_args = TrainingArguments(
-        output_dir=args.output_dir,
-        overwrite_output_dir=True,
-        num_train_epochs=args.num_train_epochs,
-        per_device_train_batch_size=args.per_device_train_batch_size,
-        gradient_accumulation_steps=(
-            args.global_train_batch_size // args.per_device_train_batch_size
-        ),
-        learning_rate=args.learning_rate,
-        warmup_ratio=args.warmup_ratio,
-        lr_scheduler_type="cosine",
-        bf16=True,
-        save_steps=50_000,
-        logging_steps=1,
-        report_to="wandb",
-    )
-
     trainer = SFTTrainer(
-        args.model_name_or_path,
+        extra_args.model_name_or_path,
         args=training_args,
         tokenizer=tokenizer,
         train_dataset=dataset["train"],
         dataset_text_field="text",
         data_collator=collator,
-        max_seq_length=args.max_seq_length,
+        max_seq_length=extra_args.max_seq_length,
     )
 
     logger.info("Training")
     trainer.train()
 
     logger.info("Saving model")
-    trainer.save_model(args.output_dir)
+    trainer.save_model()
 
 
 if __name__ == "__main__":
