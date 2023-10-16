@@ -63,6 +63,6 @@ accelerate launch --config_file accelerate_config.yaml train.py \
   - eval: `llm-jp:/model/llm-jp-eval/dataset/develop_small/`
 - Models
   - 13B: `llm-jp:/model/checkpoint_HF/13B/ds_gpt_v101_fattn_nfs_0825_refined-data-gpt_13B_refined_gpu96_node12_lr0.00008533_gbs1536_mbs1_nwk2_zero1_pp8/global_step96657/`
-  - 1.3B: `/model/checkpoint_HF/1.3B/ds_gpt_v101_fattn_nfs_0825_refined-data-gpt_1.3B_refined_gpu96_node12_lr0.0001708_gbs1536_mbs4_nwk2_zero1_pp1/global_step96173/`
+  - 1.3B: `llm-jp:/model/checkpoint_HF/1.3B/ds_gpt_v101_fattn_nfs_0825_refined-data-gpt_1.3B_refined_gpu96_node12_lr0.0001708_gbs1536_mbs4_nwk2_zero1_pp1/global_step96173/`
 - Tokenizer
   - from Hugging Face Hub: `llm-jp/hf-fast-tokenizer-v21b3`
