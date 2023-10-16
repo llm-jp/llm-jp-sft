@@ -12,6 +12,26 @@ pip install -r requirements.txt
 
 ## Training
 
+- For 1.3B models:
+```bash
+accelerate launch --config_file accelerate_config_zero2.yaml train.py \
+    --num_train_epochs 2 \
+    --per_device_train_batch_size 12 \
+    --gradient_accumulation_steps 96 \
+    --learning_rate 1e-5 \
+    --warmup_ratio 0.1 \
+    --lr_scheduler cosine \
+    --bf16 \
+    --save_steps 50000 \
+    --logging_steps 1 \
+    --report_to wandb \
+    --data_files <path to jamp.json> <path to janli.json> ... \
+    --model_name_or_path <path to HF model> \
+    --tokenizer_name_or_path <path to HF tokenizer> \
+    --output_dir <path to output directory>
+```
+
+- For 13B models:
 ```bash
 accelerate launch --config_file accelerate_config.yaml train.py \
     --num_train_epochs 2 \

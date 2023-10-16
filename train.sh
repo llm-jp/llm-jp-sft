@@ -1,10 +1,10 @@
 #!/bin/sh
 # 1.3B
-accelerate launch --config_file accelerate_config.yaml \
+accelerate launch --config_file accelerate_config_zero2.yaml \
     train.py \
     --num_train_epochs 2 \
-    --per_device_train_batch_size 1 \
-    --gradient_accumulation_steps 32 \
+    --per_device_train_batch_size 12 \
+    --gradient_accumulation_steps 96 \
     --learning_rate 1e-5 \
     --warmup_ratio 0.1 \
     --lr_scheduler cosine \
