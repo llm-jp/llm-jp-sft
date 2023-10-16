@@ -13,8 +13,9 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class ExtraArguments:
-    data_files: list[str]
     model_name_or_path: str
+    data_files: list[str]
+    eval_data_files: list[str] = None
     tokenizer_name_or_path: Optional[str] = None
     max_seq_length: int = 2048
 
@@ -49,7 +50,12 @@ def main() -> None:
 
     logger.info(f"Loading data")
 
-    dataset = load_datasets(extra_args.data_files)
+    train_dataset = load_datasets(extra_args.data_files)
+    if extra_args.eval_data_files:
+        eval_dataset = load_datasets(extra_args.eval_data_files)
+        training_args.do_eval = True
+    else:
+        eval_dataset = None
 
     logger.info("Formatting prompts")
     response_template = "回答："
@@ -60,7 +66,8 @@ def main() -> None:
         extra_args.model_name_or_path,
         args=training_args,
         tokenizer=tokenizer,
-        train_dataset=dataset,
+        train_dataset=train_dataset,
+        eval_dataset=eval_dataset,
         formatting_func=formatting_prompts_func,
         data_collator=collator,
         max_seq_length=extra_args.max_seq_length,
