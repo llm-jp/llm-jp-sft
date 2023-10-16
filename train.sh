@@ -17,7 +17,7 @@ accelerate launch --config_file accelerate_config_zero2.yaml \
     --evaluation_strategy steps \
     --eval_steps 10 \
     --model_name_or_path models/llmjp-1.3b-refined \
-    --tokenizer_name_or_path models/llmjp-tokenizer-2.1 \
+    --tokenizer_name_or_path llm-jp/hf-fast-tokenizer-v21b3 \
     --output_dir /model/kiyomaru/sft/results/llmjp-1.3b-refined.js
 # 13B
 accelerate launch --config_file accelerate_config.yaml \
@@ -37,5 +37,5 @@ accelerate launch --config_file accelerate_config.yaml \
     --evaluation_strategy steps \
     --eval_steps 10 \
     --model_name_or_path models/llmjp-13b-refined \
-    --tokenizer_name_or_path models/llmjp-tokenizer-2.1 \
+    --tokenizer_name_or_path llm-jp/hf-fast-tokenizer-v21b3 \
     --output_dir /model/kiyomaru/sft/results/llmjp-13b-refined.js
