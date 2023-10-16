@@ -42,7 +42,9 @@ def main() -> None:
     training_args, extra_args = parser.parse_args_into_dataclasses()
 
     logger.info(f"Loading tokenizer from {extra_args.tokenizer_name_or_path}")
-    tokenizer_name_or_path: str = extra_args.tokenizer_name_or_path or extra_args.model_name_or_path
+    tokenizer_name_or_path: str = (
+        extra_args.tokenizer_name_or_path or extra_args.model_name_or_path
+    )
     tokenizer = AutoTokenizer.from_pretrained(tokenizer_name_or_path)
 
     logger.info(f"Loading data")
