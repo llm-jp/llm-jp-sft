@@ -16,8 +16,8 @@ pip install -r requirements.txt
 ```bash
 accelerate launch --config_file accelerate_config_zero2.yaml train.py \
     --num_train_epochs 2 \
-    --per_device_train_batch_size 12 \
-    --gradient_accumulation_steps 96 \
+    --per_device_train_batch_size 10 \
+    --gradient_accumulation_steps 80 \
     --learning_rate 1e-5 \
     --warmup_ratio 0.1 \
     --lr_scheduler cosine \
