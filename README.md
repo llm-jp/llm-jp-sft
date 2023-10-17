@@ -1,14 +1,32 @@
 # Supervised Fine-tuning for LLMs
 
+This repository contains the code for fine-tuning language models on labeled datasets.
+
 ## Requirements
 
 - Python: 3.10.12
+- [trl](https://huggingface.co/docs/trl/index): 0.7.2
+- [transformers](https://huggingface.co/docs/transformers/index): 4.34.0
+- [tokenizers](https://huggingface.co/docs/tokenizers/index): 0.14.0
+- Others: see [requirements.txt](requirements.txt).
 
 ## Installation
+
+To install the required packages, run the following command:
 
 ```bash
 pip install -r requirements.txt
 ```
+
+## Dataset Preparation
+
+A sample dataset is provided in `data/`. The dataset is in a jsonl file, and here is its structure:
+
+```json
+{"text": "### 指示：以下の質問に答えなさい。 ### 質問：日本で一番高い山は？ ### 回答：富士山"}
+```
+
+During the training phase, the loss is computed only on tokens after the "### 回答：" segment. In this case, the loss will be computed on "富士山".
 
 ## Training
 
@@ -55,14 +73,3 @@ accelerate launch --config_file accelerate_config.yaml train.py \
     --tokenizer_name_or_path <path to HF tokenizer> \
     --output_dir <path to output directory>
 ```
-
-## Path
-
-- Dataset
-  - train: `llm-jp:/model/llm-jp-eval/dataset/tuning/`
-  - eval: `llm-jp:/model/llm-jp-eval/dataset/develop_small/`
-- Models
-  - 13B: `llm-jp:/model/checkpoint_HF/13B/ds_gpt_v101_fattn_nfs_0825_refined-data-gpt_13B_refined_gpu96_node12_lr0.00008533_gbs1536_mbs1_nwk2_zero1_pp8/global_step96657/`
-  - 1.3B: `llm-jp:/model/checkpoint_HF/1.3B/ds_gpt_v101_fattn_nfs_0825_refined-data-gpt_1.3B_refined_gpu96_node12_lr0.0001708_gbs1536_mbs4_nwk2_zero1_pp1/global_step96173/`
-- Tokenizer
-  - from Hugging Face Hub: `llm-jp/hf-fast-tokenizer-v21b3`
