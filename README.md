@@ -1,6 +1,6 @@
-# Supervised Fine-tuning for LLMs
+# LLM-jp SFT
 
-This repository contains the code for fine-tuning language models on labeled datasets.
+This repository contains the code for supervised fine-tuning.
 
 ## Requirements
 
