@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass
-class ExtraArguments:
+class SFTTrainingArguments:
     model_name_or_path: str
     data_files: list[str]
     eval_data_files: list[str] = None
@@ -44,20 +44,20 @@ def load_datasets(data_files):
 
 
 def main() -> None:
-    parser = HfArgumentParser((TrainingArguments, ExtraArguments))
-    training_args, extra_args = parser.parse_args_into_dataclasses()
+    parser = HfArgumentParser((TrainingArguments, SFTTrainingArguments))
+    training_args, sft_training_args = parser.parse_args_into_dataclasses()
 
-    logger.info(f"Loading tokenizer from {extra_args.tokenizer_name_or_path}")
+    logger.info(f"Loading tokenizer from {sft_training_args.tokenizer_name_or_path}")
     tokenizer_name_or_path: str = (
-        extra_args.tokenizer_name_or_path or extra_args.model_name_or_path
+        sft_training_args.tokenizer_name_or_path or sft_training_args.model_name_or_path
     )
     tokenizer = AutoTokenizer.from_pretrained(tokenizer_name_or_path)
 
     logger.info(f"Loading data")
 
-    train_dataset = load_datasets(extra_args.data_files)
-    if extra_args.eval_data_files:
-        eval_dataset = load_datasets(extra_args.eval_data_files)
+    train_dataset = load_datasets(sft_training_args.data_files)
+    if sft_training_args.eval_data_files:
+        eval_dataset = load_datasets(sft_training_args.eval_data_files)
         training_args.do_eval = True
     else:
         eval_dataset = None
@@ -67,13 +67,13 @@ def main() -> None:
     collator = DataCollatorForCompletionOnlyLM(response_template, tokenizer=tokenizer)
 
     peft_config: Optional[LoraConfig] = None
-    if extra_args.use_peft:
+    if sft_training_args.use_peft:
         logger.info("Setting up LoRA")
         peft_config = LoraConfig(
-            r=extra_args.peft_lora_r,
+            r=sft_training_args.peft_lora_r,
             target_modules=["c_attn", "c_proj", "c_fc"],
-            lora_alpha=extra_args.peft_lora_alpha,
-            lora_dropout=extra_args.peft_lora_dropout,
+            lora_alpha=sft_training_args.peft_lora_alpha,
+            lora_dropout=sft_training_args.peft_lora_dropout,
             fan_in_fan_out=True,
             bias="none",
             task_type="CAUSAL_LM",
@@ -81,7 +81,7 @@ def main() -> None:
 
     logger.info("Setting up trainer")
     trainer = SFTTrainer(
-        extra_args.model_name_or_path,
+        sft_training_args.model_name_or_path,
         args=training_args,
         tokenizer=tokenizer,
         train_dataset=train_dataset,
@@ -89,7 +89,7 @@ def main() -> None:
         formatting_func=formatting_prompts_func,
         data_collator=collator,
         peft_config=peft_config,
-        max_seq_length=extra_args.max_seq_length,
+        max_seq_length=sft_training_args.max_seq_length,
     )
 
     logger.info("Training")
