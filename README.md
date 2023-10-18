@@ -46,4 +46,4 @@ python train.py \
 
 ## To Reproduce LLM-jp Models
 
-This section will be updated upon all the resources are publicly available.
+This section will be updated once all the necessary resources are publicly available.
