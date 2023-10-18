@@ -2,6 +2,7 @@ import logging
 from dataclasses import dataclass
 from typing import Optional
 
+from peft import LoraConfig
 from datasets import disable_caching, load_dataset, concatenate_datasets
 from transformers import AutoTokenizer, TrainingArguments, HfArgumentParser
 from trl import DataCollatorForCompletionOnlyLM, SFTTrainer
@@ -18,6 +19,10 @@ class ExtraArguments:
     eval_data_files: list[str] = None
     tokenizer_name_or_path: Optional[str] = None
     max_seq_length: int = 2048
+    use_peft: bool = False
+    peft_lora_r: int = 8
+    peft_lora_alpha: int = 32
+    peft_lora_dropout: float = 0.05
 
 
 def formatting_prompts_func(example):
@@ -61,6 +66,19 @@ def main() -> None:
     response_template = "回答："
     collator = DataCollatorForCompletionOnlyLM(response_template, tokenizer=tokenizer)
 
+    peft_config: Optional[LoraConfig] = None
+    if extra_args.use_peft:
+        logger.info("Setting up LoRA")
+        peft_config = LoraConfig(
+            r=extra_args.peft_lora_r,
+            target_modules=["c_attn", "c_proj", "c_fc"],
+            lora_alpha=extra_args.peft_lora_alpha,
+            lora_dropout=extra_args.peft_lora_dropout,
+            fan_in_fan_out=True,
+            bias="none",
+            task_type="CAUSAL_LM",
+        )
+
     logger.info("Setting up trainer")
     trainer = SFTTrainer(
         extra_args.model_name_or_path,
@@ -70,6 +88,7 @@ def main() -> None:
         eval_dataset=eval_dataset,
         formatting_func=formatting_prompts_func,
         data_collator=collator,
+        peft_config=peft_config,
         max_seq_length=extra_args.max_seq_length,
     )
 
