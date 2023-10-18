@@ -54,7 +54,7 @@ accelerate launch --config_file accelerate_config_zero2.yaml train.py \
 
 - For 13B models:
 ```bash
-accelerate launch --config_file accelerate_config.yaml train.py \
+accelerate launch --config_file accelerate_config_zero3.yaml train.py \
     --num_train_epochs 2 \
     --per_device_train_batch_size 1 \
     --gradient_accumulation_steps 32 \
