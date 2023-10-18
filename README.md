@@ -26,7 +26,7 @@ A sample dataset is provided in `data/`. The dataset is in a jsonl file, and her
 {"text": "### 指示：以下の質問に答えなさい。 ### 質問：日本で一番高い山は？ ### 回答：富士山"}
 ```
 
-During the training phase, the loss is computed only on tokens after the "### 回答：" segment. In this case, the loss will be computed on "富士山".
+During the training phase, the loss is computed only on tokens after the `### 回答：` segment. In this case, the loss will be computed on "富士山".
 
 ## Training
 
