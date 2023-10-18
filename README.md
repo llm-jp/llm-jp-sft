@@ -30,46 +30,20 @@ During the training phase, the loss is computed only on tokens after the "### å›
 
 ## Training
 
-- For 1.3B models:
+This is an example of training a model on the sample dataset.
+
 ```bash
-accelerate launch --config_file accelerate_config_zero2.yaml train.py \
-    --num_train_epochs 2 \
-    --per_device_train_batch_size 10 \
-    --gradient_accumulation_steps 80 \
+python train.py \
+    --num_train_epochs 1 \
+    --per_device_train_batch_size 1 \
     --learning_rate 1e-5 \
     --warmup_ratio 0.1 \
     --lr_scheduler cosine \
-    --bf16 \
-    --save_steps 50000 \
-    --logging_steps 1 \
-    --report_to wandb \
-    --data_files <path to tuning/jamp.json> <path to tuning/janli.json> ... \
-    --eval_data_files <path to develop_small/jamp.json> <path to develop_small/janli.json> ... \
-    --evaluation_strategy steps \
-    --eval_steps 10 \
-    --model_name_or_path <path to HF model> \
-    --tokenizer_name_or_path <path to HF tokenizer> \
-    --output_dir <path to output directory>
+    --data_files data/example.jsonl \
+    --model_name_or_path llm-jp/llm-jp-1.3b-v1.0 \
+    --output_dir results/
 ```
 
-- For 13B models:
-```bash
-accelerate launch --config_file accelerate_config_zero3.yaml train.py \
-    --num_train_epochs 2 \
-    --per_device_train_batch_size 1 \
-    --gradient_accumulation_steps 32 \
-    --learning_rate 1e-5 \
-    --warmup_ratio 0.1 \
-    --lr_scheduler cosine \
-    --bf16 \
-    --save_steps 50000 \
-    --logging_steps 1 \
-    --report_to wandb \
-    --data_files <path to tuning/jamp.json> <path to tuning/janli.json> ... \
-    --eval_data_files <path to develop_small/jamp.json> <path to develop_small/janli.json> ... \
-    --evaluation_strategy steps \
-    --eval_steps 10 \
-    --model_name_or_path <path to HF model> \
-    --tokenizer_name_or_path <path to HF tokenizer> \
-    --output_dir <path to output directory>
-```
+## To Reproduce LLM-jp Models
+
+This section will be updated upon all the resources are publicly available.
