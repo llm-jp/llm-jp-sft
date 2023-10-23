@@ -59,27 +59,29 @@ We used the following datasets for fine-tuning.
 
 **NOTE**: The datasets mentioned above are not public as of now. We're in the process of making them accessible. Stay tuned for updates.
 
-### Fine-tuning
+### Full Parameter Supervised Fine-tuning
 
-#### For the 1.3B model
+#### For the 1.3B model on A100 40GB 1node_8gpu
 
 ```bash
-accelerate launch --config_file accelerate_config_zero3.yaml \
+accelerate launch --config_file accelerate_config_zero1.yaml \
     train.py \
     --num_train_epochs 2 \
-    --per_device_train_batch_size 1 \
-    --gradient_accumulation_steps 32 \
+    --per_device_train_batch_size 4 \
+    --gradient_accumulation_steps 16 \
     --learning_rate 1e-5 \
     --warmup_ratio 0.1 \
     --lr_scheduler cosine \
     --bf16 \
     --max_seq_length 2048 \
+    --gradient_checkpointing \
+    --logging_steps 1 \
     --data_files jamp.json janli.json jcommonsenseqa.json jemhopqa.json jnli.json jsem.json jsick.json jsquad.json jsts.json niilc.json dolly_deepl.json oasst_deepl.json \
     --model_name_or_path llm-jp/llm-jp-1.3b-v1.0 \
     --output_dir results/llm-jp-1.3b-v1.0_jaster-dolly-oasst
 ```
 
-#### For the 13B model
+#### For the 13B model on A100 40GB 1node_8gpu
 
 ```bash
 accelerate launch --config_file accelerate_config_zero3.yaml \
@@ -93,6 +95,30 @@ accelerate launch --config_file accelerate_config_zero3.yaml \
     --bf16 \
     --max_seq_length 2048 \
     --gradient_checkpointing \
+    --logging_steps 1 \
+    --data_files jamp.json janli.json jcommonsenseqa.json jemhopqa.json jnli.json jsem.json jsick.json jsquad.json jsts.json niilc.json dolly_deepl.json oasst_deepl.json \
+    --model_name_or_path llm-jp/llm-jp-13b-v1.0 \
+    --output_dir results/llm-jp-13b-v1.0_jaster-dolly-oasst
+```
+
+#### For the 13B model on A100 40GB 8node_64gpu
+
+```bash
+accelerate launch --config_file accelerate_config_zero2.8node.yaml \
+    --main_process_ip $main_process_ip \
+    --main_process_port 29500 \
+    --machine_rank $machine_rank \
+    train.py \
+    --num_train_epochs 2 \
+    --per_device_train_batch_size 3 \
+    --gradient_accumulation_steps 6 \
+    --learning_rate 1e-5 \
+    --warmup_ratio 0.1 \
+    --lr_scheduler cosine \
+    --bf16 \
+    --max_seq_length 2048 \
+    --gradient_checkpointing \
+    --logging_steps 1 \
     --data_files jamp.json janli.json jcommonsenseqa.json jemhopqa.json jnli.json jsem.json jsick.json jsquad.json jsts.json niilc.json dolly_deepl.json oasst_deepl.json \
     --model_name_or_path llm-jp/llm-jp-13b-v1.0 \
     --output_dir results/llm-jp-13b-v1.0_jaster-dolly-oasst
