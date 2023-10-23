@@ -2,9 +2,10 @@ import logging
 from dataclasses import dataclass
 from typing import Optional
 
+import torch
 from peft import LoraConfig
 from datasets import disable_caching, load_dataset, concatenate_datasets
-from transformers import AutoTokenizer, TrainingArguments, HfArgumentParser
+from transformers import AutoTokenizer, AutoModelForCausalLM, TrainingArguments, HfArgumentParser
 from trl import DataCollatorForCompletionOnlyLM, SFTTrainer
 
 disable_caching()
@@ -18,6 +19,8 @@ class SFTTrainingArguments:
     data_files: list[str]
     eval_data_files: list[str] = None
     tokenizer_name_or_path: Optional[str] = None
+    use_fast: bool = True
+    additional_special_tokens: list[str] = None
     max_seq_length: int = 2048
     use_peft: bool = False
     peft_lora_r: int = 8
@@ -47,11 +50,16 @@ def main() -> None:
     parser = HfArgumentParser((TrainingArguments, SFTTrainingArguments))
     training_args, sft_training_args = parser.parse_args_into_dataclasses()
 
-    logger.info(f"Loading tokenizer from {sft_training_args.tokenizer_name_or_path}")
     tokenizer_name_or_path: str = (
         sft_training_args.tokenizer_name_or_path or sft_training_args.model_name_or_path
     )
-    tokenizer = AutoTokenizer.from_pretrained(tokenizer_name_or_path)
+    logger.info(f"Loading tokenizer from {tokenizer_name_or_path}")
+    tokenizer = AutoTokenizer.from_pretrained(
+        tokenizer_name_or_path,
+        use_fast=sft_training_args.use_fast,
+        additional_special_tokens=sft_training_args.additional_special_tokens,
+        trust_remote_code=True,
+    )
 
     logger.info(f"Loading data")
 
@@ -65,6 +73,14 @@ def main() -> None:
     logger.info("Formatting prompts")
     response_template = "回答："
     collator = DataCollatorForCompletionOnlyLM(response_template, tokenizer=tokenizer)
+
+    logger.info(f"Loading model from {sft_training_args.model_name_or_path}")
+    # we need to load model beforehand to specify bfloat16 and trust_remote_code
+    model = AutoModelForCausalLM.from_pretrained(
+        sft_training_args.model_name_or_path,
+        torch_dtype=torch.bfloat16,
+        trust_remote_code=True,
+    )
 
     peft_config: Optional[LoraConfig] = None
     if sft_training_args.use_peft:
@@ -81,7 +97,7 @@ def main() -> None:
 
     logger.info("Setting up trainer")
     trainer = SFTTrainer(
-        sft_training_args.model_name_or_path,
+        model,
         args=training_args,
         tokenizer=tokenizer,
         train_dataset=train_dataset,
