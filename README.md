@@ -103,6 +103,9 @@ accelerate launch --config_file accelerate_config_zero3.yaml \
 
 #### For the 13B model on A100 40GB 8node_64gpu
 
+Run following lines from all the nodes.
+(`$machine_rank` is the sequencial number from 0 to 7 assigned to each node, and `$main_process_ip` is the IP address of the node `$machine_rank=0`)
+
 ```bash
 accelerate launch --config_file accelerate_config_zero2.8node.yaml \
     --main_process_ip $main_process_ip \
