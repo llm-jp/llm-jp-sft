@@ -14,8 +14,4 @@ tpu_use_cluster: false
 tpu_use_sudo: false
 use_cpu: false
 deepspeed_config:
-  zero_stage: 3
-  offload_optimizer_device: none
-  offload_param_device: cpu
-  zero3_init_flag: true
-  zero3_save_16bit_model: true
+  zero_stage: 1
