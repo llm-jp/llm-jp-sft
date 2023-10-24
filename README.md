@@ -5,9 +5,12 @@ This repository contains the code for supervised fine-tuning of LLM-jp models.
 ## Requirements
 
 - Python: 3.10.12
-- [trl](https://huggingface.co/docs/trl/index): 0.7.2
-- [transformers](https://huggingface.co/docs/transformers/index): 4.34.0
-- [tokenizers](https://huggingface.co/docs/tokenizers/index): 0.14.0
+- [torch](https://pytorch.org/)>=2.0.0 (should meet with cuda version)
+- [transformers](https://huggingface.co/docs/transformers/index)>=4.34.0
+- [tokenizers](https://huggingface.co/docs/tokenizers/index)>=0.14.0
+- [accelerate](https://huggingface.co/docs/accelerate/index)>=0.23.0
+- [trl](https://huggingface.co/docs/trl/index)>=0.7.2
+- [peft](https://huggingface.co/docs/peft/index)>=0.5.0
 
 ## Installation
 
