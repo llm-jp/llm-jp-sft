@@ -135,7 +135,7 @@ accelerate launch --config_file accelerate_config_zero2.8node.yaml \
 #### For the 1.3B model on single GPU
 
 ```bash
-python train.py \
+CUDA_VISIBLE_DEVICES=0 python train.py \
     --num_train_epochs 2 \
     --per_device_train_batch_size 1 \
     --gradient_accumulation_steps 32 \
@@ -153,7 +153,7 @@ python train.py \
 #### For the 13B model on single A100 40GB
 
 ```bash
-python train.py \
+CUDA_VISIBLE_DEVICES=0 python train.py \
     --num_train_epochs 2 \
     --per_device_train_batch_size 1 \
     --gradient_accumulation_steps 32 \
