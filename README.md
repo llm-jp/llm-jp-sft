@@ -162,6 +162,7 @@ CUDA_VISIBLE_DEVICES=0 python train.py \
     --lr_scheduler cosine \
     --bf16 \
     --max_seq_length 2048 \
+    --gradient_checkpointing \
     --data_files jamp.json janli.json jcommonsenseqa.json jemhopqa.json jnli.json jsem.json jsick.json jsquad.json jsts.json niilc.json dolly_deepl.json oasst_deepl.json \
     --use_peft \
     --model_name_or_path llm-jp/llm-jp-13b-v1.0 \

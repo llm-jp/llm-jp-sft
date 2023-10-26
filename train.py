@@ -94,6 +94,13 @@ def main() -> None:
             bias="none",
             task_type="CAUSAL_LM",
         )
+        if training_args.gradient_checkpointing:
+            for param in model.parameters():
+                param.requires_grad = False
+                if param.ndim == 1:
+                    param.data = param.data.to(torch.float32)
+            model.gradient_checkpointing_enable()
+            model.enable_input_require_grads()
 
     logger.info("Setting up trainer")
     trainer = SFTTrainer(
