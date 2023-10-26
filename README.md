@@ -81,7 +81,7 @@ accelerate launch --config_file accelerate_config_zero1.yaml \
     --logging_steps 1 \
     --data_files jamp.json janli.json jcommonsenseqa.json jemhopqa.json jnli.json jsem.json jsick.json jsquad.json jsts.json niilc.json dolly_deepl.json oasst_deepl.json \
     --model_name_or_path llm-jp/llm-jp-1.3b-v1.0 \
-    --output_dir results/llm-jp-1.3b-full-instruct-jaster-dolly-oasst-v1.0
+    --output_dir results/llm-jp-1.3b-instruct-full-jaster-dolly-oasst-v1.0
 ```
 
 #### For the 13B model on A100 40GB 1node_8gpu
@@ -101,7 +101,7 @@ accelerate launch --config_file accelerate_config_zero3.yaml \
     --logging_steps 1 \
     --data_files jamp.json janli.json jcommonsenseqa.json jemhopqa.json jnli.json jsem.json jsick.json jsquad.json jsts.json niilc.json dolly_deepl.json oasst_deepl.json \
     --model_name_or_path llm-jp/llm-jp-13b-v1.0 \
-    --output_dir results/llm-jp-13b-full-instruct-jaster-dolly-oasst-v1.0
+    --output_dir results/llm-jp-13b-instruct-full-jaster-dolly-oasst-v1.0
 ```
 
 #### For the 13B model on A100 40GB 8node_64gpu
@@ -127,12 +127,12 @@ accelerate launch --config_file accelerate_config_zero2.8node.yaml \
     --logging_steps 1 \
     --data_files jamp.json janli.json jcommonsenseqa.json jemhopqa.json jnli.json jsem.json jsick.json jsquad.json jsts.json niilc.json dolly_deepl.json oasst_deepl.json \
     --model_name_or_path llm-jp/llm-jp-13b-v1.0 \
-    --output_dir results/llm-jp-13b-full-instruct-jaster-dolly-oasst-v1.0
+    --output_dir results/llm-jp-13b-instruct-full-jaster-dolly-oasst-v1.0
 ```
 
 ### Fine-tuning with PEFT
 
-#### For the 1.3B model on single GPU
+#### For the 1.3B model on single A100 40GB
 
 ```bash
 CUDA_VISIBLE_DEVICES=0 python train.py \
@@ -147,7 +147,7 @@ CUDA_VISIBLE_DEVICES=0 python train.py \
     --data_files jamp.json janli.json jcommonsenseqa.json jemhopqa.json jnli.json jsem.json jsick.json jsquad.json jsts.json niilc.json dolly_deepl.json oasst_deepl.json \
     --use_peft \
     --model_name_or_path llm-jp/llm-jp-1.3b-v1.0 \
-    --output_dir results/llm-jp-1.3b-lora-instruct-jaster-dolly-oasst-v1.0
+    --output_dir results/llm-jp-1.3b-instruct-lora-jaster-dolly-oasst-v1.0
 ```
 
 #### For the 13B model on single A100 40GB
@@ -166,17 +166,17 @@ CUDA_VISIBLE_DEVICES=0 python train.py \
     --data_files jamp.json janli.json jcommonsenseqa.json jemhopqa.json jnli.json jsem.json jsick.json jsquad.json jsts.json niilc.json dolly_deepl.json oasst_deepl.json \
     --use_peft \
     --model_name_or_path llm-jp/llm-jp-13b-v1.0 \
-    --output_dir results/llm-jp-13b-lora-instruct-jaster-dolly-oasst-v1.0
+    --output_dir results/llm-jp-13b-instruct-lora-jaster-dolly-oasst-v1.0
 ```
 
-#### For the 13B model on A100 40GB 1node_8gpu
+#### For the 1.3B model on A100 40GB 1node_8gpu
 
 ```bash
-accelerate launch --config_file accelerate_config_zero3.yaml \
+accelerate launch --config_file accelerate_config_zero1.yaml \
     train.py \
     --num_train_epochs 2 \
-    --per_device_train_batch_size 1 \
-    --gradient_accumulation_steps 32 \
+    --per_device_train_batch_size 8 \
+    --gradient_accumulation_steps 8 \
     --learning_rate 1e-5 \
     --warmup_ratio 0.1 \
     --lr_scheduler cosine \
@@ -185,5 +185,24 @@ accelerate launch --config_file accelerate_config_zero3.yaml \
     --data_files jamp.json janli.json jcommonsenseqa.json jemhopqa.json jnli.json jsem.json jsick.json jsquad.json jsts.json niilc.json dolly_deepl.json oasst_deepl.json \
     --use_peft \
     --model_name_or_path llm-jp/llm-jp-13b-v1.0 \
-    --output_dir results/llm-jp-13b-lora-instruct-jaster-dolly-oasst-v1.0
+    --output_dir results/llm-jp-13b-instruct-lora-jaster-dolly-oasst-v1.0
+```
+
+#### For the 13B model on A100 40GB 1node_8gpu
+
+```bash
+accelerate launch --config_file accelerate_config_zero1.yaml \
+    train.py \
+    --num_train_epochs 2 \
+    --per_device_train_batch_size 1 \
+    --gradient_accumulation_steps 16 \
+    --learning_rate 1e-5 \
+    --warmup_ratio 0.1 \
+    --lr_scheduler cosine \
+    --bf16 \
+    --max_seq_length 2048 \
+    --data_files jamp.json janli.json jcommonsenseqa.json jemhopqa.json jnli.json jsem.json jsick.json jsquad.json jsts.json niilc.json dolly_deepl.json oasst_deepl.json \
+    --use_peft \
+    --model_name_or_path llm-jp/llm-jp-13b-v1.0 \
+    --output_dir results/llm-jp-13b-instruct-lora-jaster-dolly-oasst-v1.0
 ```
