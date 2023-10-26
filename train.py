@@ -5,7 +5,12 @@ from typing import Optional
 import torch
 from peft import LoraConfig
 from datasets import disable_caching, load_dataset, concatenate_datasets
-from transformers import AutoTokenizer, AutoModelForCausalLM, TrainingArguments, HfArgumentParser
+from transformers import (
+    AutoTokenizer,
+    AutoModelForCausalLM,
+    TrainingArguments,
+    HfArgumentParser,
+)
 from trl import DataCollatorForCompletionOnlyLM, SFTTrainer
 
 disable_caching()

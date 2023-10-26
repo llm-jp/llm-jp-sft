@@ -62,4 +62,3 @@ In addition, you need to run `mdx/train_multi_node.sh` from all the nodes with s
 #### Single-GPU Training
 
 #### Single-node Multi-GPU Training
-
