@@ -70,8 +70,8 @@ We used the following datasets for fine-tuning.
 accelerate launch --config_file accelerate_config_zero1.yaml \
     train.py \
     --num_train_epochs 2 \
-    --per_device_train_batch_size 4 \
-    --gradient_accumulation_steps 16 \
+    --per_device_train_batch_size 8 \
+    --gradient_accumulation_steps 8 \
     --learning_rate 1e-5 \
     --warmup_ratio 0.1 \
     --lr_scheduler cosine \
@@ -137,8 +137,8 @@ accelerate launch --config_file accelerate_config_zero2.8node.yaml \
 ```bash
 CUDA_VISIBLE_DEVICES=0 python train.py \
     --num_train_epochs 2 \
-    --per_device_train_batch_size 1 \
-    --gradient_accumulation_steps 32 \
+    --per_device_train_batch_size 8 \
+    --gradient_accumulation_steps 4 \
     --learning_rate 1e-5 \
     --warmup_ratio 0.1 \
     --lr_scheduler cosine \
