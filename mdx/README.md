@@ -32,7 +32,7 @@ Examples are using `jaster` as dataset and `llm-jp-1.3b-v1.0` as base model.
   - gradient_accumulation_steps
 - examples:
   - 1.3B model on A100 40GB 1node_8gpu with `accelerate_config_zero1.yaml`
-    - `$ mdx/train_single_node.sh accelerate_config_zero1.yaml llm-jp/llm-jp-1.3b-v1.0 llm-jp/llm-jp-1.3b-v1.0 datasets/v1.1.1 dataset_jaster.sh 2 results/llm-jp-1.3b-instruct-full-jaster-v1.0 4 16`
+    - `$ mdx/train_single_node.sh accelerate_config_zero1.yaml llm-jp/llm-jp-1.3b-v1.0 llm-jp/llm-jp-1.3b-v1.0 datasets/v1.1.1 dataset_jaster.sh 2 results/llm-jp-1.3b-instruct-full-jaster-v1.0 8 8`
   - 13B model on A100 40GB 1node_8gpu with `accelerate_config_zero3.yaml`
     - `$ mdx/train_single_node.sh accelerate_config_zero3.yaml llm-jp/llm-jp-13b-v1.0 llm-jp/llm-jp-13b-v1.0 datasets/v1.1.1 dataset_jaster.sh 2 results/llm-jp-13b-instruct-full-jaster-v1.0 1 32`
 
@@ -60,6 +60,38 @@ In addition, you need to run `mdx/train_multi_node.sh` from all the nodes with s
 ### Fine-tuning with PEFT
 
 #### Single-GPU Training
+- script:
+  - 1.3B: `mdx/train_peft.sh`
+  - 13B: `mdx/train_peft_gradient_checkpointing.sh`
+- args:
+  - model_name_or_path
+  - tokenizer_name_or_path
+  - dataset_path
+  - dataset_sh
+  - num_train_epochs
+  - output_dir
+  - per_device_train_batch_size
+  - gradient_accumulation_steps
+- examples:
+  - 1.3B model on single A100 40GB
+    - `$ CUDA_VISIBLE_DEVICES=0 mdx/train_peft.sh llm-jp/llm-jp-1.3b-v1.0 llm-jp/llm-jp-1.3b-v1.0 datasets/v1.1.1 dataset_jaster.sh 2 results/llm-jp-1.3b-instruct-lora-jaster-v1.0 8 4`
+  - 13B model on single A100 40GB
+    - `$ CUDA_VISIBLE_DEVICES=0 mdx/train_peft_gradient_checkpointing.sh llm-jp/llm-jp-13b-v1.0 llm-jp/llm-jp-13b-v1.0 datasets/v1.1.1 dataset_jaster.sh 2 results/llm-jp-13b-instruct-lora-jaster-v1.0 1 32`
 
 #### Single-node Multi-GPU Training
-
+- script:
+  - `mdx/train_sigle_node.sh`
+- args:
+  - model_name_or_path
+  - tokenizer_name_or_path
+  - dataset_path
+  - dataset_sh
+  - num_train_epochs
+  - output_dir
+  - per_device_train_batch_size
+  - gradient_accumulation_steps
+- examples:
+  - 1.3B model on A100 40GB 1node_8gpu with `accelerate_config_zero1.yaml`
+    - `$ mdx/train_peft_multi_gpu.sh llm-jp/llm-jp-1.3b-v1.0 llm-jp/llm-jp-1.3b-v1.0 datasets/v1.1.1 dataset_jaster.sh 2 results/llm-jp-1.3b-instruct-lora-jaster-v1.0 8 8`
+  - 13B model on A100 40GB 1node_8gpu with `accelerate_config_zero1.yaml`
+    - `$ mdx/train_peft_multi_gpu.sh llm-jp/llm-jp-13b-v1.0 llm-jp/llm-jp-13b-v1.0 datasets/v1.1.1 dataset_jaster.sh 2 results/llm-jp-13b-instruct-lora-jaster-v1.0 1 16`
