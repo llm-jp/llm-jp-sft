@@ -15,7 +15,7 @@ accelerate launch --config_file accelerate_config_zero1.yaml \
     --num_train_epochs $num_train_epochs \
     --per_device_train_batch_size $per_device_train_batch_size \
     --gradient_accumulation_steps $gradient_accumulation_steps \
-    --learning_rate 1e-5 \
+    --learning_rate 1e-4 \
     --warmup_ratio 0.1 \
     --lr_scheduler cosine \
     --bf16 \
