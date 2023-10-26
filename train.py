@@ -5,7 +5,12 @@ from typing import Optional
 import torch
 from peft import LoraConfig
 from datasets import disable_caching, load_dataset, concatenate_datasets
-from transformers import AutoTokenizer, AutoModelForCausalLM, TrainingArguments, HfArgumentParser
+from transformers import (
+    AutoTokenizer,
+    AutoModelForCausalLM,
+    TrainingArguments,
+    HfArgumentParser,
+)
 from trl import DataCollatorForCompletionOnlyLM, SFTTrainer
 
 disable_caching()
@@ -94,6 +99,13 @@ def main() -> None:
             bias="none",
             task_type="CAUSAL_LM",
         )
+        if training_args.gradient_checkpointing:
+            for param in model.parameters():
+                param.requires_grad = False
+                if param.ndim == 1:
+                    param.data = param.data.to(torch.float32)
+            model.gradient_checkpointing_enable()
+            model.enable_input_require_grads()
 
     logger.info("Setting up trainer")
     trainer = SFTTrainer(
