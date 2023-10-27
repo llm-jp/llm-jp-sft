@@ -63,7 +63,7 @@ We used the following datasets for fine-tuning.
 #### For the 1.3B model (single node; 8 A100 40GB GPUs)
 
 ```bash
-accelerate launch --config_file accelerate_config_zero1.yaml \
+accelerate launch --config_file configs/accelerate_config_zero1.yaml \
     train.py \
     --num_train_epochs 2 \
     --per_device_train_batch_size 8 \
@@ -82,7 +82,7 @@ accelerate launch --config_file accelerate_config_zero1.yaml \
 #### For the 13B model (single node; 8 A100 40GB GPUs)
 
 ```bash
-accelerate launch --config_file accelerate_config_zero3.yaml \
+accelerate launch --config_file configs/accelerate_config_zero3.yaml \
     train.py \
     --num_train_epochs 2 \
     --per_device_train_batch_size 1 \
@@ -105,7 +105,7 @@ Run following lines from all the nodes.
 (`$machine_rank` is the sequential number from 0 to 7 assigned to each node, and `$main_process_ip` is the IP address of the node `$machine_rank=0`)
 
 ```bash
-accelerate launch --config_file accelerate_config_zero2.8node.yaml \
+accelerate launch --config_file configs/accelerate_config_zero2.8node.yaml \
     --main_process_ip $main_process_ip \
     --main_process_port 29500 \
     --machine_rank $machine_rank \
@@ -166,7 +166,7 @@ CUDA_VISIBLE_DEVICES=0 python train.py \
 #### For the 1.3B model (single node; 8 A100 40GB GPUs)
 
 ```bash
-accelerate launch --config_file accelerate_config_zero1.yaml \
+accelerate launch --config_file configs/accelerate_config_zero1.yaml \
     train.py \
     --num_train_epochs 5 \
     --per_device_train_batch_size 8 \
@@ -185,7 +185,7 @@ accelerate launch --config_file accelerate_config_zero1.yaml \
 #### For the 13B model (single node; 8 A100 40GB GPUs)
 
 ```bash
-accelerate launch --config_file accelerate_config_zero1.yaml \
+accelerate launch --config_file configs/accelerate_config_zero1.yaml \
     train.py \
     --num_train_epochs 5 \
     --per_device_train_batch_size 1 \
