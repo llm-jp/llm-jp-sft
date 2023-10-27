@@ -28,8 +28,8 @@ accelerate launch --config_file $config_file \
     --max_seq_length 2048 \
     --logging_steps 1 \
     --report_to wandb \
-    --data_files `mdx/$dataset_sh $dataset_path/tuning` \
-    --eval_data_files `mdx/$dataset_sh $dataset_path/develop_small` \
+    --data_files `./$dataset_sh $dataset_path/tuning` \
+    --eval_data_files `./$dataset_sh $dataset_path/develop_small` \
     --evaluation_strategy steps \
     --eval_steps 10 \
     --output_dir $output_dir
