@@ -8,7 +8,7 @@ num_train_epochs=$6
 output_dir=$7
 per_device_train_batch_size=$8
 gradient_accumulation_steps=$9
-main_process_ip=$[10]
+main_process_ip=${10}
 main_process_port=29500
 machine_rank=${11}
 accelerate launch --config_file $config_file \
