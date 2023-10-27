@@ -48,10 +48,6 @@ python train.py \
 
 ## To Reproduce LLM-jp Models
 
-### Development Environment
-
-We fine-tuned models on a node equipped with 8 A100 40GB GPUs.
-
 ### Datasets
 
 We used the following datasets for fine-tuning.
@@ -64,30 +60,29 @@ We used the following datasets for fine-tuning.
 
 ### Full Parameter Supervised Fine-tuning
 
-#### For the 1.3B model on A100 40GB 1node_8gpu
+#### For the 1.3B model (single node; 8 A100 40GB GPUs)
 
 ```bash
-accelerate launch --config_file accelerate_config_zero1.yaml \
+accelerate launch --config_file configs/accelerate_config_zero1.yaml \
     train.py \
     --num_train_epochs 2 \
-    --per_device_train_batch_size 4 \
-    --gradient_accumulation_steps 16 \
+    --per_device_train_batch_size 8 \
+    --gradient_accumulation_steps 8 \
     --learning_rate 1e-5 \
     --warmup_ratio 0.1 \
     --lr_scheduler cosine \
     --bf16 \
     --max_seq_length 2048 \
-    --gradient_checkpointing \
     --logging_steps 1 \
     --data_files jamp.json janli.json jcommonsenseqa.json jemhopqa.json jnli.json jsem.json jsick.json jsquad.json jsts.json niilc.json dolly_deepl.json oasst_deepl.json \
     --model_name_or_path llm-jp/llm-jp-1.3b-v1.0 \
-    --output_dir results/llm-jp-1.3b-v1.0_jaster-dolly-oasst
+    --output_dir results/llm-jp-1.3b-instruct-full-jaster-dolly-oasst-v1.0
 ```
 
-#### For the 13B model on A100 40GB 1node_8gpu
+#### For the 13B model (single node; 8 A100 40GB GPUs)
 
 ```bash
-accelerate launch --config_file accelerate_config_zero3.yaml \
+accelerate launch --config_file configs/accelerate_config_zero3.yaml \
     train.py \
     --num_train_epochs 2 \
     --per_device_train_batch_size 1 \
@@ -101,16 +96,16 @@ accelerate launch --config_file accelerate_config_zero3.yaml \
     --logging_steps 1 \
     --data_files jamp.json janli.json jcommonsenseqa.json jemhopqa.json jnli.json jsem.json jsick.json jsquad.json jsts.json niilc.json dolly_deepl.json oasst_deepl.json \
     --model_name_or_path llm-jp/llm-jp-13b-v1.0 \
-    --output_dir results/llm-jp-13b-v1.0_jaster-dolly-oasst
+    --output_dir results/llm-jp-13b-instruct-full-jaster-dolly-oasst-v1.0
 ```
 
-#### For the 13B model on A100 40GB 8node_64gpu
+#### For the 13B model (8 nodes; 64 A100 40GB GPUs)
 
 Run following lines from all the nodes.
-(`$machine_rank` is the sequencial number from 0 to 7 assigned to each node, and `$main_process_ip` is the IP address of the node `$machine_rank=0`)
+(`$machine_rank` is the sequential number from 0 to 7 assigned to each node, and `$main_process_ip` is the IP address of the node `$machine_rank=0`)
 
 ```bash
-accelerate launch --config_file accelerate_config_zero2.8node.yaml \
+accelerate launch --config_file configs/accelerate_config_zero2.8node.yaml \
     --main_process_ip $main_process_ip \
     --main_process_port 29500 \
     --machine_rank $machine_rank \
@@ -123,24 +118,22 @@ accelerate launch --config_file accelerate_config_zero2.8node.yaml \
     --lr_scheduler cosine \
     --bf16 \
     --max_seq_length 2048 \
-    --gradient_checkpointing \
     --logging_steps 1 \
     --data_files jamp.json janli.json jcommonsenseqa.json jemhopqa.json jnli.json jsem.json jsick.json jsquad.json jsts.json niilc.json dolly_deepl.json oasst_deepl.json \
     --model_name_or_path llm-jp/llm-jp-13b-v1.0 \
-    --output_dir results/llm-jp-13b-v1.0_jaster-dolly-oasst
+    --output_dir results/llm-jp-13b-instruct-full-jaster-dolly-oasst-v1.0
 ```
 
 ### Fine-tuning with PEFT
 
-#### For the 1.3B model
+#### For the 1.3B model (single node; single A100 40GB GPU)
 
 ```bash
-accelerate launch --config_file accelerate_config_zero3.yaml \
-    train.py \
-    --num_train_epochs 2 \
-    --per_device_train_batch_size 1 \
-    --gradient_accumulation_steps 32 \
-    --learning_rate 1e-5 \
+CUDA_VISIBLE_DEVICES=0 python train.py \
+    --num_train_epochs 5 \
+    --per_device_train_batch_size 8 \
+    --gradient_accumulation_steps 4 \
+    --learning_rate 1e-4 \
     --warmup_ratio 0.1 \
     --lr_scheduler cosine \
     --bf16 \
@@ -148,18 +141,17 @@ accelerate launch --config_file accelerate_config_zero3.yaml \
     --data_files jamp.json janli.json jcommonsenseqa.json jemhopqa.json jnli.json jsem.json jsick.json jsquad.json jsts.json niilc.json dolly_deepl.json oasst_deepl.json \
     --use_peft \
     --model_name_or_path llm-jp/llm-jp-1.3b-v1.0 \
-    --output_dir results/llm-jp-1.3b-v1.0_jaster-dolly-oasst
+    --output_dir results/llm-jp-1.3b-instruct-lora-jaster-dolly-oasst-v1.0
 ```
 
-#### For the 13B model
+#### For the 13B model (single node; single A100 40GB GPU)
 
 ```bash
-accelerate launch --config_file accelerate_config_zero3.yaml \
-    train.py \
-    --num_train_epochs 2 \
+CUDA_VISIBLE_DEVICES=0 python train.py \
+    --num_train_epochs 5 \
     --per_device_train_batch_size 1 \
     --gradient_accumulation_steps 32 \
-    --learning_rate 1e-5 \
+    --learning_rate 1e-4 \
     --warmup_ratio 0.1 \
     --lr_scheduler cosine \
     --bf16 \
@@ -168,5 +160,43 @@ accelerate launch --config_file accelerate_config_zero3.yaml \
     --data_files jamp.json janli.json jcommonsenseqa.json jemhopqa.json jnli.json jsem.json jsick.json jsquad.json jsts.json niilc.json dolly_deepl.json oasst_deepl.json \
     --use_peft \
     --model_name_or_path llm-jp/llm-jp-13b-v1.0 \
-    --output_dir results/llm-jp-13b-v1.0_jaster-dolly-oasst
+    --output_dir results/llm-jp-13b-instruct-lora-jaster-dolly-oasst-v1.0
+```
+
+#### For the 1.3B model (single node; 8 A100 40GB GPUs)
+
+```bash
+accelerate launch --config_file configs/accelerate_config_zero1.yaml \
+    train.py \
+    --num_train_epochs 5 \
+    --per_device_train_batch_size 8 \
+    --gradient_accumulation_steps 8 \
+    --learning_rate 1e-4 \
+    --warmup_ratio 0.1 \
+    --lr_scheduler cosine \
+    --bf16 \
+    --max_seq_length 2048 \
+    --data_files jamp.json janli.json jcommonsenseqa.json jemhopqa.json jnli.json jsem.json jsick.json jsquad.json jsts.json niilc.json dolly_deepl.json oasst_deepl.json \
+    --use_peft \
+    --model_name_or_path llm-jp/llm-jp-1.3b-v1.0 \
+    --output_dir results/llm-jp-1.3b-instruct-lora-jaster-dolly-oasst-v1.0
+```
+
+#### For the 13B model (single node; 8 A100 40GB GPUs)
+
+```bash
+accelerate launch --config_file configs/accelerate_config_zero1.yaml \
+    train.py \
+    --num_train_epochs 5 \
+    --per_device_train_batch_size 1 \
+    --gradient_accumulation_steps 16 \
+    --learning_rate 1e-4 \
+    --warmup_ratio 0.1 \
+    --lr_scheduler cosine \
+    --bf16 \
+    --max_seq_length 2048 \
+    --data_files jamp.json janli.json jcommonsenseqa.json jemhopqa.json jnli.json jsem.json jsick.json jsquad.json jsts.json niilc.json dolly_deepl.json oasst_deepl.json \
+    --use_peft \
+    --model_name_or_path llm-jp/llm-jp-13b-v1.0 \
+    --output_dir results/llm-jp-13b-instruct-lora-jaster-dolly-oasst-v1.0
 ```
