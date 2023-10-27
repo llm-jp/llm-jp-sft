@@ -77,7 +77,6 @@ accelerate launch --config_file accelerate_config_zero1.yaml \
     --lr_scheduler cosine \
     --bf16 \
     --max_seq_length 2048 \
-    --gradient_checkpointing \
     --logging_steps 1 \
     --data_files jamp.json janli.json jcommonsenseqa.json jemhopqa.json jnli.json jsem.json jsick.json jsquad.json jsts.json niilc.json dolly_deepl.json oasst_deepl.json \
     --model_name_or_path llm-jp/llm-jp-1.3b-v1.0 \
@@ -123,7 +122,6 @@ accelerate launch --config_file accelerate_config_zero2.8node.yaml \
     --lr_scheduler cosine \
     --bf16 \
     --max_seq_length 2048 \
-    --gradient_checkpointing \
     --logging_steps 1 \
     --data_files jamp.json janli.json jcommonsenseqa.json jemhopqa.json jnli.json jsem.json jsick.json jsquad.json jsts.json niilc.json dolly_deepl.json oasst_deepl.json \
     --model_name_or_path llm-jp/llm-jp-13b-v1.0 \
