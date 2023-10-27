@@ -7,7 +7,7 @@ num_train_epochs=$5
 output_dir=$6
 per_device_train_batch_size=$7
 gradient_accumulation_steps=$8
-accelerate launch --config_file accelerate_config_zero1.yaml \
+accelerate launch --config_file configs/accelerate_config_zero1.yaml \
     train.py \
     --model_name_or_path $model_name_or_path \
     --tokenizer_name_or_path $tokenizer_name_or_path \

@@ -48,10 +48,6 @@ python train.py \
 
 ## To Reproduce LLM-jp Models
 
-### Development Environment
-
-We fine-tuned models on a node equipped with 8 A100 40GB GPUs.
-
 ### Datasets
 
 We used the following datasets for fine-tuning.
@@ -64,10 +60,10 @@ We used the following datasets for fine-tuning.
 
 ### Full Parameter Supervised Fine-tuning
 
-#### For the 1.3B model on A100 40GB 1node_8gpu
+#### For the 1.3B model (single node; 8 A100 40GB GPUs)
 
 ```bash
-accelerate launch --config_file accelerate_config_zero1.yaml \
+accelerate launch --config_file configs/accelerate_config_zero1.yaml \
     train.py \
     --num_train_epochs 2 \
     --per_device_train_batch_size 8 \
@@ -83,10 +79,10 @@ accelerate launch --config_file accelerate_config_zero1.yaml \
     --output_dir results/llm-jp-1.3b-instruct-full-jaster-dolly-oasst-v1.0
 ```
 
-#### For the 13B model on A100 40GB 1node_8gpu
+#### For the 13B model (single node; 8 A100 40GB GPUs)
 
 ```bash
-accelerate launch --config_file accelerate_config_zero3.yaml \
+accelerate launch --config_file configs/accelerate_config_zero3.yaml \
     train.py \
     --num_train_epochs 2 \
     --per_device_train_batch_size 1 \
@@ -103,13 +99,13 @@ accelerate launch --config_file accelerate_config_zero3.yaml \
     --output_dir results/llm-jp-13b-instruct-full-jaster-dolly-oasst-v1.0
 ```
 
-#### For the 13B model on A100 40GB 8node_64gpu
+#### For the 13B model (8 nodes; 64 A100 40GB GPUs)
 
 Run following lines from all the nodes.
 (`$machine_rank` is the sequential number from 0 to 7 assigned to each node, and `$main_process_ip` is the IP address of the node `$machine_rank=0`)
 
 ```bash
-accelerate launch --config_file accelerate_config_zero2.8node.yaml \
+accelerate launch --config_file configs/accelerate_config_zero2.8node.yaml \
     --main_process_ip $main_process_ip \
     --main_process_port 29500 \
     --machine_rank $machine_rank \
@@ -130,7 +126,7 @@ accelerate launch --config_file accelerate_config_zero2.8node.yaml \
 
 ### Fine-tuning with PEFT
 
-#### For the 1.3B model on single A100 40GB
+#### For the 1.3B model (single node; single A100 40GB GPU)
 
 ```bash
 CUDA_VISIBLE_DEVICES=0 python train.py \
@@ -148,7 +144,7 @@ CUDA_VISIBLE_DEVICES=0 python train.py \
     --output_dir results/llm-jp-1.3b-instruct-lora-jaster-dolly-oasst-v1.0
 ```
 
-#### For the 13B model on single A100 40GB
+#### For the 13B model (single node; single A100 40GB GPU)
 
 ```bash
 CUDA_VISIBLE_DEVICES=0 python train.py \
@@ -167,10 +163,10 @@ CUDA_VISIBLE_DEVICES=0 python train.py \
     --output_dir results/llm-jp-13b-instruct-lora-jaster-dolly-oasst-v1.0
 ```
 
-#### For the 1.3B model on A100 40GB 1node_8gpu
+#### For the 1.3B model (single node; 8 A100 40GB GPUs)
 
 ```bash
-accelerate launch --config_file accelerate_config_zero1.yaml \
+accelerate launch --config_file configs/accelerate_config_zero1.yaml \
     train.py \
     --num_train_epochs 5 \
     --per_device_train_batch_size 8 \
@@ -186,10 +182,10 @@ accelerate launch --config_file accelerate_config_zero1.yaml \
     --output_dir results/llm-jp-1.3b-instruct-lora-jaster-dolly-oasst-v1.0
 ```
 
-#### For the 13B model on A100 40GB 1node_8gpu
+#### For the 13B model (single node; 8 A100 40GB GPUs)
 
 ```bash
-accelerate launch --config_file accelerate_config_zero1.yaml \
+accelerate launch --config_file configs/accelerate_config_zero1.yaml \
     train.py \
     --num_train_epochs 5 \
     --per_device_train_batch_size 1 \
