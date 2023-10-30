@@ -22,8 +22,8 @@ accelerate launch --config_file configs/accelerate_config_zero1.yaml \
     --max_seq_length 2048 \
     --logging_steps 10 \
     --report_to wandb \
-    --data_files `./$dataset_sh $dataset_path/tuning` \
-    --eval_data_files `./$dataset_sh $dataset_path/develop_small` \
+    --data_files `$dataset_sh $dataset_path/tuning` \
+    --eval_data_files `$dataset_sh $dataset_path/develop_small` \
     --evaluation_strategy steps \
     --eval_steps 100 \
     --output_dir $output_dir
