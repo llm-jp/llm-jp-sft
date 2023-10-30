@@ -1,4 +1,9 @@
 #!/bin/sh
+
+# Need to export following two variable for MDX llm-jp-nvlink environment
+export NCCL_IB_GID_INDEX=3
+export NCCL_IB_TC=106
+
 config_file=$1
 model_name_or_path=$2
 tokenizer_name_or_path=$3
