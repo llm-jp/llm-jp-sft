@@ -76,8 +76,9 @@ def main() -> None:
         eval_dataset = None
 
     logger.info("Formatting prompts")
-    response_template = "回答："
-    collator = DataCollatorForCompletionOnlyLM(response_template, tokenizer=tokenizer)
+    collator = DataCollatorForCompletionOnlyLM(
+        instruction_template="指示：", response_template="回答：", tokenizer=tokenizer
+    )
 
     logger.info(f"Loading model from {sft_training_args.model_name_or_path}")
     # we need to load model beforehand to specify bfloat16 and trust_remote_code
