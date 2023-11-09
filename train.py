@@ -66,7 +66,7 @@ def main() -> None:
         trust_remote_code=True,
     )
 
-    logger.info(f"Loading data")
+    logger.info("Loading data")
 
     train_dataset = load_datasets(sft_training_args.data_files)
     if sft_training_args.eval_data_files:
