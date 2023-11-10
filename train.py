@@ -33,6 +33,14 @@ class SFTTrainingArguments:
     peft_lora_dropout: float = 0.05
 
 
+def formatting_prompts_func(example):
+    output_texts = []
+    for i in range(len(example["text"])):
+        text = example["text"][i].replace("### 応答：", "### 回答：")
+        output_texts.append(text)
+    return output_texts
+
+
 def load_datasets(data_files):
     datasets = []
     for data_file in data_files:
@@ -79,13 +87,6 @@ def main() -> None:
         torch_dtype=torch.bfloat16,
         trust_remote_code=True,
     )
-    if training_args.gradient_checkpointing:
-        for param in model.parameters():
-            param.requires_grad = False
-            if param.ndim == 1:
-                param.data = param.data.to(torch.float32)
-        model.gradient_checkpointing_enable()
-        model.enable_input_require_grads()
 
     peft_config: Optional[LoraConfig] = None
     if sft_training_args.use_peft:
@@ -114,7 +115,7 @@ def main() -> None:
         tokenizer=tokenizer,
         train_dataset=train_dataset,
         eval_dataset=eval_dataset,
-        dataset_text_field="text",
+        formatting_func=formatting_prompts_func,
         data_collator=collator,
         peft_config=peft_config,
         max_seq_length=sft_training_args.max_seq_length,
