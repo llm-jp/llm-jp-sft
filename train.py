@@ -62,7 +62,12 @@ def main() -> None:
     tokenizer = AutoTokenizer.from_pretrained(
         tokenizer_name_or_path,
         use_fast=sft_training_args.use_fast,
-        additional_special_tokens=sft_training_args.additional_special_tokens,
+        additional_special_tokens=[
+            "<INSTRUCTION|LLM-jp>",
+            "<INPUT|LLM-jp>",
+            "<OUTPUT|LLM-jp>",
+        ]
+        + sft_training_args.additional_special_tokens,
         trust_remote_code=True,
     )
 
@@ -76,8 +81,17 @@ def main() -> None:
         eval_dataset = None
 
     logger.info("Formatting prompts")
+    # Prompt Format
+    # - Sample with `input` field
+    # -- <INSTRUCTION|LLM-jp>{instruction}\n<INPUT|LLM-jp>{input}\n<OUTPUT|LLM-jp>{output}
+    # - Sample without `input` field
+    # -- <INSTRUCTION|LLM-jp>{instruction}\n<OUTPUT|LLM-jp>{output}
+    # - Sample of conversational dataset
+    # -- <INSTRUCTION|LLM-jp>{instruction1}\n<OUTPUT|LLM-jp>{output1}\n<INSTRUCTION|LLM-jp>{instruction2}\n ...
     collator = DataCollatorForCompletionOnlyLM(
-        instruction_template="指示：", response_template="回答：", tokenizer=tokenizer
+        instruction_template="<INSTRUCTION|LLM-jp>",
+        response_template="<OUTPUT|LLM-jp>",
+        tokenizer=tokenizer,
     )
 
     logger.info(f"Loading model from {sft_training_args.model_name_or_path}")
