@@ -59,15 +59,17 @@ def main() -> None:
         sft_training_args.tokenizer_name_or_path or sft_training_args.model_name_or_path
     )
     logger.info(f"Loading tokenizer from {tokenizer_name_or_path}")
+    additional_special_tokens: list[str] = [
+        "<INSTRUCTION|LLM-jp>",
+        "<INPUT|LLM-jp>",
+        "<OUTPUT|LLM-jp>",
+    ]
+    if sft_training_args.additional_special_tokens is not None:
+        additional_special_tokens += sft_training_args.additional_special_tokens
     tokenizer = AutoTokenizer.from_pretrained(
         tokenizer_name_or_path,
         use_fast=sft_training_args.use_fast,
-        additional_special_tokens=[
-            "<INSTRUCTION|LLM-jp>",
-            "<INPUT|LLM-jp>",
-            "<OUTPUT|LLM-jp>",
-        ]
-        + sft_training_args.additional_special_tokens,
+        additional_special_tokens=additional_special_tokens,
         trust_remote_code=True,
     )
 
