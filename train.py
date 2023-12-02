@@ -110,10 +110,12 @@ def main() -> None:
     )
 
     logger.info(f"Loading model from {sft_training_args.model_name_or_path}")
+    kwargs = sft_training_args.from_pretrained_kwargs(training_args)
+    logger.debug(f"AutoModelForCausalLM.from_pretrained({sft_training_args.model_name_or_path}, trust_remote_code=True, **kwargs={kwargs})")
     model = AutoModelForCausalLM.from_pretrained(
         sft_training_args.model_name_or_path,
         trust_remote_code=True,
-        **sft_training_args.from_pretrained_kwargs(training_args),
+        **kwargs,
     )
 
     peft_config: Optional[LoraConfig] = None
