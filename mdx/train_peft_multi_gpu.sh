@@ -1,13 +1,14 @@
-#!/bin/sh
-model_name_or_path=$1
-tokenizer_name_or_path=$2
-dataset_path=$3
-dataset_sh=$4
-num_train_epochs=$5
-output_dir=$6
-per_device_train_batch_size=$7
-gradient_accumulation_steps=$8
-accelerate launch --config_file configs/accelerate_config_zero1.yaml \
+#!/bin/bash
+config_file=$1
+model_name_or_path=$2
+tokenizer_name_or_path=$3
+dataset_path=$4
+dataset_sh=$5
+num_train_epochs=$6
+output_dir=$7
+per_device_train_batch_size=$8
+gradient_accumulation_steps=$9
+accelerate launch --config_file $config_file \
     train.py \
     --model_name_or_path $model_name_or_path \
     --tokenizer_name_or_path $tokenizer_name_or_path \
@@ -27,4 +28,4 @@ accelerate launch --config_file configs/accelerate_config_zero1.yaml \
     --evaluation_strategy steps \
     --eval_steps 100 \
     --output_dir $output_dir \
-    ${@:9:($#-8)}
+    ${@:10}

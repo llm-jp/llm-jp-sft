@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 model_name_or_path=$1
 tokenizer_name_or_path=$2
 dataset_path=$3
@@ -26,4 +26,4 @@ python train.py \
     --evaluation_strategy steps \
     --eval_steps 100 \
     --output_dir $output_dir \
-    ${@:9:($#-8)}
+    ${@:9}

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Need to export following two variable for MDX llm-jp-nvlink environment
 export NCCL_IB_GID_INDEX=3
@@ -38,4 +38,4 @@ accelerate launch --config_file $config_file \
     --evaluation_strategy steps \
     --eval_steps 10 \
     --output_dir $output_dir \
-    ${@:12:($#-11)}
+    ${@:12}
