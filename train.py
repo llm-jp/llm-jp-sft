@@ -10,6 +10,7 @@ from transformers import (
     AutoModelForCausalLM,
     TrainingArguments,
     HfArgumentParser,
+    BitsAndBytesConfig,
 )
 from trl import DataCollatorForCompletionOnlyLM, SFTTrainer
 
@@ -27,21 +28,38 @@ class SFTTrainingArguments:
     use_fast: bool = True
     additional_special_tokens: list[str] = None
     max_seq_length: int = 2048
+    load_in_8bit: bool = False
+    load_in_4bit: bool = False
     use_peft: bool = False
-    peft_target_modules: Union[str, list[str]] = "llm-jp"
+    peft_target_model: Optional[str] = "llm-jp"
+    peft_target_modules: Optional[str] = None
     peft_lora_r: int = 8
     peft_lora_alpha: int = 32
     peft_lora_dropout: float = 0.05
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        if isinstance(self.peft_target_modules, str):
+        assert not(self.load_in_8bit and self.load_in_4bit)
+        assert self.peft_target_model or (not self.peft_target_model and self.peft_target_modules)
+        if self.peft_target_model:
             self.peft_target_modules = {
                 "default": None,
                 "llm-jp": ["c_attn", "c_proj", "c_fc"],
                 "llama": ['q_proj', 'k_proj', 'v_proj', 'o_proj'],  # https://github.com/serp-ai/LLaMA-8bit-LoRA/blob/main/finetune_peft_8bit.py
                 "llama-all": ['q_proj', 'k_proj', 'v_proj', 'o_proj', "gate_proj", "up_proj", "down_proj", "lm_head", "embed_tokens"],  # https://note.com/kan_hatakeyama/n/ncd09c52d26c7
-            }[self.peft_target_modules]
+            }[self.peft_target_model]
+
+    def from_pretrained_kwargs(self, training_args):
+        if self.load_in_8bit:
+            return {"load_in_8bit": True}
+        elif self.load_in_4bit:
+            return {
+                "quantization_config": BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_use_double_quant=True, bnb_4bit_quant_type="nf4", bnb_4bit_compute_dtype=torch.bfloat16)
+            }
+        elif training_args["bf16"]:
+            return {"torch_dtype": torch.bfloat16}
+        else:
+            return {"torch_dtype": torch.float16}
 
 
 def formatting_prompts_func(example):
@@ -92,11 +110,10 @@ def main() -> None:
     )
 
     logger.info(f"Loading model from {sft_training_args.model_name_or_path}")
-    # we need to load model beforehand to specify bfloat16 and trust_remote_code
     model = AutoModelForCausalLM.from_pretrained(
         sft_training_args.model_name_or_path,
-        torch_dtype=torch.bfloat16,
         trust_remote_code=True,
+        **sft_training_args.from_pretrained_kwargs(training_args),
     )
 
     peft_config: Optional[LoraConfig] = None
