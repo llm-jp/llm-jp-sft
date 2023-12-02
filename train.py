@@ -1,6 +1,6 @@
 import logging
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, Union
 
 import torch
 from peft import LoraConfig
@@ -28,9 +28,20 @@ class SFTTrainingArguments:
     additional_special_tokens: list[str] = None
     max_seq_length: int = 2048
     use_peft: bool = False
+    peft_target_modules: Union[str, list[str]] = "llm-jp"
     peft_lora_r: int = 8
     peft_lora_alpha: int = 32
     peft_lora_dropout: float = 0.05
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        if isinstance(self.peft_target_modules, str):
+            self.peft_target_modules = {
+                "default": None,
+                "llm-jp": ["c_attn", "c_proj", "c_fc"],
+                "llama": ['q_proj', 'k_proj', 'v_proj', 'o_proj'],  # https://github.com/serp-ai/LLaMA-8bit-LoRA/blob/main/finetune_peft_8bit.py
+                "llama-all": ['q_proj', 'k_proj', 'v_proj', 'o_proj', "gate_proj", "up_proj", "down_proj", "lm_head", "embed_tokens"],  # https://note.com/kan_hatakeyama/n/ncd09c52d26c7
+            }[self.peft_target_modules]
 
 
 def formatting_prompts_func(example):
@@ -93,7 +104,7 @@ def main() -> None:
         logger.info("Setting up LoRA")
         peft_config = LoraConfig(
             r=sft_training_args.peft_lora_r,
-            target_modules=["c_attn", "c_proj", "c_fc"],
+            target_modules=sft_training_args.peft_target_modules,
             lora_alpha=sft_training_args.peft_lora_alpha,
             lora_dropout=sft_training_args.peft_lora_dropout,
             fan_in_fan_out=True,
