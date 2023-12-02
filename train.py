@@ -37,8 +37,7 @@ class SFTTrainingArguments:
     peft_lora_alpha: int = 32
     peft_lora_dropout: float = 0.05
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def setup(self):
         assert not(self.load_in_8bit and self.load_in_4bit)
         assert self.peft_target_model or (not self.peft_target_model and self.peft_target_modules)
         if self.peft_target_model:
@@ -83,6 +82,7 @@ def load_datasets(data_files):
 def main() -> None:
     parser = HfArgumentParser((TrainingArguments, SFTTrainingArguments))
     training_args, sft_training_args = parser.parse_args_into_dataclasses()
+    sft_training_args.setup()
 
     tokenizer_name_or_path: str = (
         sft_training_args.tokenizer_name_or_path or sft_training_args.model_name_or_path
