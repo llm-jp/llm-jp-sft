@@ -55,7 +55,7 @@ class SFTTrainingArguments:
             return {
                 "quantization_config": BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_use_double_quant=True, bnb_4bit_quant_type="nf4", bnb_4bit_compute_dtype=torch.bfloat16)
             }
-        elif training_args["bf16"]:
+        elif training_args.bf16:
             return {"torch_dtype": torch.bfloat16}
         else:
             return {"torch_dtype": torch.float16}
