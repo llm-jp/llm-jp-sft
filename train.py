@@ -1,6 +1,6 @@
 import logging
 from dataclasses import dataclass
-from typing import Optional, Union
+from typing import Optional
 
 import torch
 from peft import LoraConfig
@@ -32,27 +32,28 @@ class SFTTrainingArguments:
     load_in_4bit: bool = False
     use_peft: bool = False
     peft_target_model: Optional[str] = "llm-jp"
-    peft_target_modules: Optional[str] = None
+    peft_target_modules: Optional[list[str]] = None
     peft_lora_r: int = 8
     peft_lora_alpha: int = 32
     peft_lora_dropout: float = 0.05
 
-    def setup(self):
-        assert not (self.load_in_8bit and self.load_in_4bit)
-        assert self.peft_target_model or (
-            not self.peft_target_model and self.peft_target_modules
-        )
-        if self.peft_target_model:
-            self.peft_target_modules = {
-                "default": None,
-                "llm-jp": ["c_attn", "c_proj", "c_fc"],
-                "llama": [
+    def __post_init__(self):
+        if self.load_in_8bit and self.load_in_4bit:
+            raise ValueError("load_in_8bit and load_in_4bit are mutually exclusive")
+        if self.peft_target_model and self.peft_target_modules is None:
+            if self.peft_target_model == "llm-jp":
+                self.peft_target_modules = ["c_attn", "c_proj", "c_fc"]
+            elif self.peft_target_model == "llama":
+                # https://github.com/serp-ai/LLaMA-8bit-LoRA/blob/main/finetune_peft_8bit.py
+                self.peft_target_modules = [
                     "q_proj",
                     "k_proj",
                     "v_proj",
                     "o_proj",
-                ],  # https://github.com/serp-ai/LLaMA-8bit-LoRA/blob/main/finetune_peft_8bit.py
-                "llama-all": [
+                ]
+            elif self.peft_target_model == "llama-all":
+                # https://note.com/kan_hatakeyama/n/ncd09c52d26c7
+                self.peft_target_modules = [
                     "q_proj",
                     "k_proj",
                     "v_proj",
@@ -62,8 +63,12 @@ class SFTTrainingArguments:
                     "down_proj",
                     "lm_head",
                     "embed_tokens",
-                ],  # https://note.com/kan_hatakeyama/n/ncd09c52d26c7
-            }[self.peft_target_model]
+                ]
+            else:
+                logger.warning(
+                    f"peft_target_model '{self.peft_target_model}' is not supported, "
+                    f"so peft_target_modules is set to None."
+                )
 
     def from_pretrained_kwargs(self, training_args):
         if self.load_in_8bit:
@@ -104,7 +109,6 @@ def load_datasets(data_files):
 def main() -> None:
     parser = HfArgumentParser((TrainingArguments, SFTTrainingArguments))
     training_args, sft_training_args = parser.parse_args_into_dataclasses()
-    sft_training_args.setup()
 
     tokenizer_name_or_path: str = (
         sft_training_args.tokenizer_name_or_path or sft_training_args.model_name_or_path
