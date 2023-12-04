@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 config_file=$1
 model_name_or_path=$2
 tokenizer_name_or_path=$3
@@ -27,4 +27,5 @@ accelerate launch --config_file $config_file \
     --eval_data_files `$dataset_sh $dataset_path/develop_small` \
     --evaluation_strategy steps \
     --eval_steps 10 \
-    --output_dir $output_dir
+    --output_dir $output_dir \
+    ${@:10}

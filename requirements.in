@@ -6,3 +6,4 @@ peft
 sentencepiece
 wandb
 deepspeed
+bitsandbytes
