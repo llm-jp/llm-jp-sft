@@ -1,5 +1,6 @@
 import logging
 from dataclasses import dataclass
+import os
 from typing import Optional
 
 import torch
@@ -180,6 +181,7 @@ def main() -> None:
     )
 
     logger.info("Training")
+    os.environ['NCCL_BLOCKING_WAIT'] = '0'
     trainer.train()
 
     logger.info("Saving model")
