@@ -7,3 +7,4 @@ sentencepiece
 wandb
 deepspeed
 bitsandbytes
+scipy
