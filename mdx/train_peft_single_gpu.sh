@@ -16,7 +16,7 @@ python train.py \
     --gradient_accumulation_steps $gradient_accumulation_steps \
     --learning_rate 1e-4 \
     --warmup_ratio 0.1 \
-    --lr_scheduler cosine \
+    --lr_scheduler_type cosine \
     --bf16 \
     --max_seq_length 2048 \
     --logging_steps 10 \
