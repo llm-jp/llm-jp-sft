@@ -40,7 +40,7 @@ python train.py \
     --per_device_train_batch_size 1 \
     --learning_rate 1e-5 \
     --warmup_ratio 0.1 \
-    --lr_scheduler cosine \
+    --lr_scheduler_type cosine \
     --data_files data/example.jsonl \
     --model_name_or_path llm-jp/llm-jp-1.3b-v1.0 \
     --output_dir results/
@@ -70,7 +70,7 @@ accelerate launch --config_file configs/accelerate_config_zero1.yaml \
     --gradient_accumulation_steps 8 \
     --learning_rate 1e-5 \
     --warmup_ratio 0.1 \
-    --lr_scheduler cosine \
+    --lr_scheduler_type cosine \
     --bf16 \
     --max_seq_length 2048 \
     --logging_steps 1 \
@@ -89,7 +89,7 @@ accelerate launch --config_file configs/accelerate_config_zero3.yaml \
     --gradient_accumulation_steps 32 \
     --learning_rate 1e-5 \
     --warmup_ratio 0.1 \
-    --lr_scheduler cosine \
+    --lr_scheduler_type cosine \
     --bf16 \
     --max_seq_length 2048 \
     --gradient_checkpointing \
@@ -115,7 +115,7 @@ accelerate launch --config_file configs/accelerate_config_zero2.8node.yaml \
     --gradient_accumulation_steps 6 \
     --learning_rate 1e-5 \
     --warmup_ratio 0.1 \
-    --lr_scheduler cosine \
+    --lr_scheduler_type cosine \
     --bf16 \
     --max_seq_length 2048 \
     --logging_steps 1 \
@@ -135,7 +135,7 @@ CUDA_VISIBLE_DEVICES=0 python train.py \
     --gradient_accumulation_steps 4 \
     --learning_rate 1e-4 \
     --warmup_ratio 0.1 \
-    --lr_scheduler cosine \
+    --lr_scheduler_type cosine \
     --bf16 \
     --max_seq_length 2048 \
     --data_files jamp.json janli.json jcommonsenseqa.json jemhopqa.json jnli.json jsem.json jsick.json jsquad.json jsts.json niilc.json dolly_deepl.json oasst_deepl.json \
@@ -153,7 +153,7 @@ CUDA_VISIBLE_DEVICES=0 python train.py \
     --gradient_accumulation_steps 32 \
     --learning_rate 1e-4 \
     --warmup_ratio 0.1 \
-    --lr_scheduler cosine \
+    --lr_scheduler_type cosine \
     --bf16 \
     --max_seq_length 2048 \
     --gradient_checkpointing \
@@ -173,7 +173,7 @@ accelerate launch --config_file configs/accelerate_config_zero1.yaml \
     --gradient_accumulation_steps 8 \
     --learning_rate 1e-4 \
     --warmup_ratio 0.1 \
-    --lr_scheduler cosine \
+    --lr_scheduler_type cosine \
     --bf16 \
     --max_seq_length 2048 \
     --data_files jamp.json janli.json jcommonsenseqa.json jemhopqa.json jnli.json jsem.json jsick.json jsquad.json jsts.json niilc.json dolly_deepl.json oasst_deepl.json \
@@ -192,7 +192,7 @@ accelerate launch --config_file configs/accelerate_config_zero1.yaml \
     --gradient_accumulation_steps 16 \
     --learning_rate 1e-4 \
     --warmup_ratio 0.1 \
-    --lr_scheduler cosine \
+    --lr_scheduler_type cosine \
     --bf16 \
     --max_seq_length 2048 \
     --data_files jamp.json janli.json jcommonsenseqa.json jemhopqa.json jnli.json jsem.json jsick.json jsquad.json jsts.json niilc.json dolly_deepl.json oasst_deepl.json \
