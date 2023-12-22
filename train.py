@@ -88,14 +88,6 @@ class SFTTrainingArguments:
             return {"torch_dtype": torch.float16}
 
 
-def formatting_prompts_func(example):
-    output_texts = []
-    for i in range(len(example["text"])):
-        text = example["text"][i].replace("### 応答：", "### 回答：")
-        output_texts.append(text)
-    return output_texts
-
-
 def load_datasets(data_files):
     datasets = []
     for data_file in data_files:
@@ -173,7 +165,7 @@ def main() -> None:
         tokenizer=tokenizer,
         train_dataset=train_dataset,
         eval_dataset=eval_dataset,
-        formatting_func=formatting_prompts_func,
+        dataset_text_field="text",
         data_collator=collator,
         peft_config=peft_config,
         max_seq_length=sft_training_args.max_seq_length,
