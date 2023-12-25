@@ -124,7 +124,7 @@ def main() -> None:
 
     logger.info("Formatting prompts")
     collator = DataCollatorForCompletionOnlyLM(
-        instruction_template="指示：", response_template="回答：", tokenizer=tokenizer
+        instruction_template="### 指示:", response_template="### 応答:", tokenizer=tokenizer
     )
 
     logger.info(f"Loading model from {sft_training_args.model_name_or_path}")
