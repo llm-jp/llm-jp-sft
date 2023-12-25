@@ -81,9 +81,9 @@ For LoRA SFT, the default learning-rate is `2e-5` and num epochs is `5`.
   - gradient_accumulation_steps
 - examples:
   - 1.3B model on single A100 40GB
-    - `$ CUDA_VISIBLE_DEVICES=0 mdx/train_peft_single_gpu.sh llm-jp/llm-jp-1.3b-v1.0 llm-jp/llm-jp-1.3b-v1.0 ./dataset mdx/dataset_jaster.sh 5 results/llm-jp-1.3b-instruct-lora-jaster-v1.0 8 4`
+    - `$ CUDA_VISIBLE_DEVICES=0 mdx/train_peft_single_gpu.sh llm-jp/llm-jp-1.3b-v1.0 llm-jp/llm-jp-1.3b-v1.0 ./dataset mdx/dataset_jaster.sh 5 results/llm-jp-1.3b-instruct-lora-jaster-v1.0 8 8`
   - 13B model on single A100 40GB + `gradient_checkpointing`
-    - `$ CUDA_VISIBLE_DEVICES=0 mdx/train_peft_single_gpu_gradient_checkpointing.sh llm-jp/llm-jp-13b-v1.0 llm-jp/llm-jp-13b-v1.0 ./dataset mdx/dataset_jaster.sh 5 results/llm-jp-13b-instruct-lora-jaster-v1.0 1 32`
+    - `$ CUDA_VISIBLE_DEVICES=0 mdx/train_peft_single_gpu_gradient_checkpointing.sh llm-jp/llm-jp-13b-v1.0 llm-jp/llm-jp-13b-v1.0 ./dataset mdx/dataset_jaster.sh 5 results/llm-jp-13b-instruct-lora-jaster-v1.0 1 64`
 
 #### Single-node Multi-GPU Training
 - script:
@@ -99,6 +99,6 @@ For LoRA SFT, the default learning-rate is `2e-5` and num epochs is `5`.
   - gradient_accumulation_steps
 - examples:
   - 1.3B model on A100 40GB 1node_8gpu with `accelerate_config_zero1.yaml`
-    - `$ mdx/train_peft_multi_gpu.sh configs/accelerate_config_zero1.yaml llm-jp/llm-jp-1.3b-v1.0 llm-jp/llm-jp-1.3b-v1.0 ./dataset mdx/dataset_jaster.sh 5 results/llm-jp-1.3b-instruct-lora-jaster-v1.0 8 8`
+    - `$ mdx/train_peft_multi_gpu.sh configs/accelerate_config_zero1.yaml llm-jp/llm-jp-1.3b-v1.0 llm-jp/llm-jp-1.3b-v1.0 ./dataset mdx/dataset_jaster.sh 5 results/llm-jp-1.3b-instruct-lora-jaster-v1.0 8 4`
   - 13B model on A100 40GB 1node_8gpu with `accelerate_config_zero1.yaml`
-    - `$ mdx/train_peft_multi_gpu.sh configs/accelerate_config_zero1.yaml llm-jp/llm-jp-13b-v1.0 llm-jp/llm-jp-13b-v1.0 ./dataset mdx/dataset_jaster.sh 5 results/llm-jp-13b-instruct-lora-jaster-v1.0 1 16`
+    - `$ mdx/train_peft_multi_gpu.sh configs/accelerate_config_zero1.yaml llm-jp/llm-jp-13b-v1.0 llm-jp/llm-jp-13b-v1.0 ./dataset mdx/dataset_jaster.sh 5 results/llm-jp-13b-instruct-lora-jaster-v1.0 1 8`
