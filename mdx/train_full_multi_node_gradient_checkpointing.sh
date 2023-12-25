@@ -36,6 +36,6 @@ accelerate launch --config_file $config_file \
     --save_total_limit 2 \
     --logging_steps 1 \
     --report_to wandb \
-    --data_files `$dataset_sh $dataset_path/tuning` \
+    --data_files `$dataset_sh $dataset_path` \
     --output_dir $output_dir \
     ${@:12}
