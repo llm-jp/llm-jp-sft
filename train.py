@@ -123,8 +123,10 @@ def main() -> None:
         eval_dataset = None
 
     logger.info("Formatting prompts")
+    instruction_ids = tokenizer.encode("\n\n### 指示:\n", add_special_tokens=False)[1:]
+    response_ids = tokenizer.encode("\n\n### 応答:\n", add_special_tokens=False)[1:]
     collator = DataCollatorForCompletionOnlyLM(
-        instruction_template="指示:", response_template="応答:", tokenizer=tokenizer
+        instruction_template=instruction_ids, response_template=response_ids, tokenizer=tokenizer
     )
 
     logger.info(f"Loading model from {sft_training_args.model_name_or_path}")
