@@ -205,3 +205,27 @@ accelerate launch --config_file configs/accelerate_config_zero1.yaml \
     --model_name_or_path llm-jp/llm-jp-13b-v1.0 \
     --output_dir results/llm-jp-13b-instruct-lora-jaster-dolly-oasst-v1.0
 ```
+
+### Using flash-attn
+
+The `use_flash_attention_2` option in transformers v4.36 only supports for the models based on Llama and Falcon.
+
+#### For the 7B model (single node; single A100 40GB GPU)
+
+```bash
+CUDA_VISIBLE_DEVICES=0 python train.py \
+    --num_train_epochs 5 \
+    --per_device_train_batch_size 4 \
+    --gradient_accumulation_steps 16 \
+    --learning_rate 1e-4 \
+    --warmup_ratio 0.1 \
+    --lr_scheduler_type cosine \
+    --bf16 \
+    --max_seq_length 2048 \
+    --gradient_checkpointing \
+    --data_files jamp.json janli.json jcommonsenseqa.json jemhopqa.json jnli.json jsem.json jsick.json jsquad.json jsts.json niilc.json dolly_deepl.json oasst_deepl.json \
+    --use_flash_attention_2 True \
+    --use_peft \
+    --model_name_or_path llm-jp/llm-jp-7b \
+    --output_dir results/llm-jp-7b-instruct-lora-jaster-dolly-oasst-v1.0
+```
