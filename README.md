@@ -20,7 +20,7 @@ Install the necessary packages using `pip`:
 pip install -r requirements.txt
 ```
 
-To enable `use_flash_attention_2` option:
+To turn on `use_flash_attention_2` option:
 ```bash
 pip install flash-attn --no-build-isolation
 ```
