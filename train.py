@@ -30,7 +30,7 @@ class SFTTrainingArguments:
     max_seq_length: int = 2048
     load_in_8bit: bool = False
     load_in_4bit: bool = False
-    use_flash_attention_2 = False
+    use_flash_attention_2: bool = False
     use_peft: bool = False
     peft_target_model: Optional[str] = "llm-jp"
     peft_target_modules: Optional[list[str]] = None
