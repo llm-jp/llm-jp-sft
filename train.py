@@ -30,6 +30,7 @@ class SFTTrainingArguments:
     max_seq_length: int = 2048
     load_in_8bit: bool = False
     load_in_4bit: bool = False
+    use_flash_attention_2: bool = False
     use_peft: bool = False
     peft_target_model: Optional[str] = "llm-jp"
     peft_target_modules: Optional[list[str]] = None
@@ -72,9 +73,9 @@ class SFTTrainingArguments:
 
     def from_pretrained_kwargs(self, training_args):
         if self.load_in_8bit:
-            return {"load_in_8bit": True}
+            kwargs = {"load_in_8bit": True}
         elif self.load_in_4bit:
-            return {
+            kwargs = {
                 "quantization_config": BitsAndBytesConfig(
                     load_in_4bit=True,
                     bnb_4bit_use_double_quant=True,
@@ -83,9 +84,11 @@ class SFTTrainingArguments:
                 )
             }
         elif training_args.bf16:
-            return {"torch_dtype": torch.bfloat16}
+            kwargs = {"torch_dtype": torch.bfloat16}
         else:
-            return {"torch_dtype": torch.float16}
+            kwargs = {"torch_dtype": torch.float16}
+        kwargs["use_flash_attention_2"] = self.use_flash_attention_2
+        return kwargs
 
 
 def load_datasets(data_files):

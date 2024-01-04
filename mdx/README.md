@@ -102,3 +102,29 @@ For LoRA SFT, the default learning-rate is `2e-5` and num epochs is `5`.
     - `$ mdx/train_peft_multi_gpu.sh configs/accelerate_config_zero1.yaml llm-jp/llm-jp-1.3b-v1.0 llm-jp/llm-jp-1.3b-v1.0 ./dataset mdx/dataset_jaster.sh 5 results/llm-jp-1.3b-instruct-lora-jaster-v1.0 8 4`
   - 13B model on A100 40GB 1node_8gpu with `accelerate_config_zero1.yaml`
     - `$ mdx/train_peft_multi_gpu.sh configs/accelerate_config_zero1.yaml llm-jp/llm-jp-13b-v1.0 llm-jp/llm-jp-13b-v1.0 ./dataset mdx/dataset_jaster.sh 5 results/llm-jp-13b-instruct-lora-jaster-v1.0 1 8`
+
+### Using flash-attn
+
+The `use_flash_attention_2` option in transformers v4.36 only supports for the models based on Llama and Falcon.
+
+Enabling `use_flash_attention_2` option can reduce GPU memory usage, which allows you to increase `per_device_train_batch_size` and thus increases training throughput.
+
+#### Single-GPU Training
+(`gradient_checkpointing` is not compatible with `--peft_target_model llama-all`)
+- script:
+  - 7B: `mdx/train_peft_single_gpu.sh`
+- positional args:
+  - model_name_or_path
+  - tokenizer_name_or_path
+  - dataset_path
+  - dataset_sh
+  - num_train_epochs
+  - output_dir
+  - per_device_train_batch_size
+  - gradient_accumulation_steps
+- additional args:
+  - peft_target_model
+  - use_flash_attention_2
+- examples:
+  - 7B model on single A100 40GB
+    - `$ CUDA_VISIBLE_DEVICES=0 mdx/train_peft_single_gpu.sh /model/7B_HF/llm-jp-7b/ /model/7B_HF/llm-jp-7b/ dataset/ mdx/dataset_jaster.sh 5 results/llm-jp-7b-jaster-lora-all 4 16 --peft_target_model llama-all --use_flash_attention_2 True`
