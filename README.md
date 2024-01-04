@@ -20,6 +20,11 @@ Install the necessary packages using `pip`:
 pip install -r requirements.txt
 ```
 
+To enable `use_flash_attention_2` option:
+```bash
+pip install flash-attn --no-build-isolation
+```
+
 ## Dataset Preparation
 
 A sample dataset is provided in `data/`. A training example is structured as follows:
