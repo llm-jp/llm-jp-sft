@@ -229,3 +229,13 @@ CUDA_VISIBLE_DEVICES=0 python train.py \
     --model_name_or_path llm-jp/llm-jp-7b \
     --output_dir results/llm-jp-7b-instruct-lora-jaster-dolly-oasst-v1.0
 ```
+
+
+### GPTQ Converter
+
+```bash
+python converter/gptq_converter.py \
+    --model_name_or_path llm-jp/llm-jp-13b-v1.0 \
+    --dataset ptb \
+    --output_dir results/llm-jp-13b-v1.0-gptq
+```
