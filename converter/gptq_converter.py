@@ -26,7 +26,8 @@ if __name__ == "__main__":
     quantization_config = GPTQConfig(bits=4, group_size=128, dataset=dataset, desc_act=False)
     # load model
     quantized_model = AutoModelForCausalLM.from_pretrained(model_name_or_path, quantization_config=quantization_config, device_map='auto')
-    quantized_model.save_pretrained(model_name_or_path)
+    quantized_model.save_pretrained(output_dir)
+    tokenizer.save_pretrained(output_dir)
     # inference check
     text = "自然言語処理とは何か"
     tokenized_input = tokenizer.encode(text, add_special_tokens=False, return_tensors="pt").to(quantized_model.device)
