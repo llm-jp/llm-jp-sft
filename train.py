@@ -51,6 +51,9 @@ class SFTTrainingArguments:
                     "k_proj",
                     "v_proj",
                     "o_proj",
+                    "gate_proj",
+                    "up_proj",
+                    "down_proj",
                 ]
             elif self.peft_target_model == "llama-all":
                 # https://note.com/kan_hatakeyama/n/ncd09c52d26c7
@@ -129,7 +132,9 @@ def main() -> None:
     instruction_ids = tokenizer.encode("\n\n### 指示:\n", add_special_tokens=False)[1:]
     response_ids = tokenizer.encode("\n\n### 応答:\n", add_special_tokens=False)[1:]
     collator = DataCollatorForCompletionOnlyLM(
-        instruction_template=instruction_ids, response_template=response_ids, tokenizer=tokenizer
+        instruction_template=instruction_ids,
+        response_template=response_ids,
+        tokenizer=tokenizer,
     )
 
     logger.info(f"Loading model from {sft_training_args.model_name_or_path}")
