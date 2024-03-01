@@ -22,6 +22,7 @@ pip install -r requirements.txt
 
 To turn on `use_flash_attention_2` option:
 ```bash
+pip install wheel
 pip install flash-attn --no-build-isolation
 ```
 
