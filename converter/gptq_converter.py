@@ -10,7 +10,7 @@ if __name__ == "__main__":
     arg_parser.add_argument("--model_name_or_path", type=str, help="model id")
     arg_parser.add_argument("--output_dir", type=str)
     arg_parser.add_argument("--dataset", type=str, default="ptb", help="dataset name")
-    arg_parser.add_argument("--bits", type=int, default=4, help="quantization bits")
+    arg_parser.add_argument("--bits", type=int, choices=[2, 4, 8, 16], default=4, help="quantization bits")
     arg_parser.add_argument("--group_size", type=int, default=128, help="group size")
     arg_parser.add_argument("--test", action="store_true", help="run test")    
     args = arg_parser.parse_args()
