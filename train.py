@@ -4,7 +4,6 @@ from typing import Optional
 
 import torch
 from peft import LoraConfig
-from datasets import disable_caching, load_dataset, concatenate_datasets
 from transformers import (
     AutoTokenizer,
     AutoModelForCausalLM,
@@ -12,9 +11,10 @@ from transformers import (
     HfArgumentParser,
     BitsAndBytesConfig,
 )
-from trl import DataCollatorForCompletionOnlyLM, SFTTrainer
+from trl import SFTTrainer
 
-disable_caching()
+from dataset import CustomDataset, CustomConstantLengthDataset
+
 
 logger = logging.getLogger(__name__)
 
@@ -94,16 +94,6 @@ class SFTTrainingArguments:
         return kwargs
 
 
-def load_datasets(data_files):
-    datasets = []
-    for data_file in data_files:
-        dataset = load_dataset("json", data_files=data_file)
-        dataset = dataset["train"]
-        dataset = dataset.select_columns("text")
-        datasets.append(dataset)
-    return concatenate_datasets(datasets)
-
-
 def main() -> None:
     parser = HfArgumentParser((TrainingArguments, SFTTrainingArguments))
     training_args, sft_training_args = parser.parse_args_into_dataclasses()
@@ -120,22 +110,28 @@ def main() -> None:
     )
 
     logger.info("Loading data")
-
-    train_dataset = load_datasets(sft_training_args.data_files)
+    train_dataset = CustomConstantLengthDataset(
+        dataset=CustomDataset(
+            tokenizer=tokenizer,
+            data_files=sft_training_args.data_files,
+            max_seq_length=sft_training_args.max_seq_length,
+        ),
+        seq_length=sft_training_args.max_seq_length,
+        shuffle=True,
+    )
     if sft_training_args.eval_data_files:
-        eval_dataset = load_datasets(sft_training_args.eval_data_files)
+        eval_dataset = CustomConstantLengthDataset(
+            dataset=CustomDataset(
+                tokenizer=tokenizer,
+                data_files=sft_training_args.eval_data_files,
+                max_seq_length=sft_training_args.max_seq_length,
+            ),
+            seq_length=sft_training_args.max_seq_length,
+            shuffle=False,
+        )
         training_args.do_eval = True
     else:
         eval_dataset = None
-
-    logger.info("Formatting prompts")
-    instruction_ids = tokenizer.encode("\n\n### 指示:\n", add_special_tokens=False)[1:]
-    response_ids = tokenizer.encode("\n\n### 応答:\n", add_special_tokens=False)[1:]
-    collator = DataCollatorForCompletionOnlyLM(
-        instruction_template=instruction_ids,
-        response_template=response_ids,
-        tokenizer=tokenizer,
-    )
 
     logger.info(f"Loading model from {sft_training_args.model_name_or_path}")
     kwargs = sft_training_args.from_pretrained_kwargs(training_args)
@@ -176,7 +172,6 @@ def main() -> None:
         train_dataset=train_dataset,
         eval_dataset=eval_dataset,
         dataset_text_field="text",
-        data_collator=collator,
         peft_config=peft_config,
         max_seq_length=sft_training_args.max_seq_length,
     )
