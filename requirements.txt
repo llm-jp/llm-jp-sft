@@ -267,6 +267,6 @@ xxhash==3.4.1
     # via datasets
 yarl==1.9.4
     # via aiohttp
-
+auto-gptq==0.6.0
 # The following packages are considered to be unsafe in a requirements file:
 # setuptools
