@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 import torch
+import wandb
 from peft import LoraConfig
 from datasets import disable_caching, load_dataset, concatenate_datasets
 from transformers import (
@@ -37,6 +38,8 @@ class SFTTrainingArguments:
     peft_lora_r: int = 8
     peft_lora_alpha: int = 32
     peft_lora_dropout: float = 0.05
+    use_wandb_dataset_artifacts: bool = False
+    use_wandb_model_artifacts: bool = False
 
     def __post_init__(self):
         if self.load_in_8bit and self.load_in_4bit:
@@ -94,99 +97,109 @@ class SFTTrainingArguments:
         return kwargs
 
 
-def load_datasets(data_files):
-    datasets = []
-    for data_file in data_files:
-        dataset = load_dataset("json", data_files=data_file)
-        dataset = dataset["train"]
-        dataset = dataset.select_columns("text")
-        datasets.append(dataset)
-    return concatenate_datasets(datasets)
 
 
 def main() -> None:
-    parser = HfArgumentParser((TrainingArguments, SFTTrainingArguments))
-    training_args, sft_training_args = parser.parse_args_into_dataclasses()
+    with wandb.init() as run:
+        parser = HfArgumentParser((TrainingArguments, SFTTrainingArguments))
+        training_args, sft_training_args = parser.parse_args_into_dataclasses()
 
-    tokenizer_name_or_path: str = (
-        sft_training_args.tokenizer_name_or_path or sft_training_args.model_name_or_path
-    )
-    logger.info(f"Loading tokenizer from {tokenizer_name_or_path}")
-    tokenizer = AutoTokenizer.from_pretrained(
-        tokenizer_name_or_path,
-        use_fast=sft_training_args.use_fast,
-        additional_special_tokens=sft_training_args.additional_special_tokens,
-        trust_remote_code=True,
-    )
+        if sft_training_args.use_wandb_model_artifacts:
+            model_artifact = run.use_artifact(sft_training_args.model.artifacts_path)
+            model_path = model_artifact.download()
+        else:
+            model_path = sft_training_args.model_name_or_path
 
-    logger.info("Loading data")
-
-    train_dataset = load_datasets(sft_training_args.data_files)
-    if sft_training_args.eval_data_files:
-        eval_dataset = load_datasets(sft_training_args.eval_data_files)
-        training_args.do_eval = True
-    else:
-        eval_dataset = None
-
-    logger.info("Formatting prompts")
-    instruction_ids = tokenizer.encode("\n\n### 指示:\n", add_special_tokens=False)[1:]
-    response_ids = tokenizer.encode("\n\n### 応答:\n", add_special_tokens=False)[1:]
-    collator = DataCollatorForCompletionOnlyLM(
-        instruction_template=instruction_ids,
-        response_template=response_ids,
-        tokenizer=tokenizer,
-    )
-
-    logger.info(f"Loading model from {sft_training_args.model_name_or_path}")
-    kwargs = sft_training_args.from_pretrained_kwargs(training_args)
-    logger.debug(
-        f"AutoModelForCausalLM.from_pretrained({sft_training_args.model_name_or_path}, trust_remote_code=True, **kwargs={kwargs})"
-    )
-    model = AutoModelForCausalLM.from_pretrained(
-        sft_training_args.model_name_or_path,
-        trust_remote_code=True,
-        **kwargs,
-    )
-
-    peft_config: Optional[LoraConfig] = None
-    if sft_training_args.use_peft:
-        logger.info("Setting up LoRA")
-        peft_config = LoraConfig(
-            r=sft_training_args.peft_lora_r,
-            target_modules=sft_training_args.peft_target_modules,
-            lora_alpha=sft_training_args.peft_lora_alpha,
-            lora_dropout=sft_training_args.peft_lora_dropout,
-            fan_in_fan_out=True,
-            bias="none",
-            task_type="CAUSAL_LM",
+        tokenizer_name_or_path: str = (
+            sft_training_args.tokenizer_name_or_path or model_path
         )
-        if training_args.gradient_checkpointing:
-            for param in model.parameters():
-                param.requires_grad = False
-                if param.ndim == 1:
-                    param.data = param.data.to(torch.float32)
-            model.gradient_checkpointing_enable()
-            model.enable_input_require_grads()
+        logger.info(f"Loading tokenizer from {tokenizer_name_or_path}")
+        tokenizer = AutoTokenizer.from_pretrained(
+            tokenizer_name_or_path,
+            use_fast=sft_training_args.use_fast,
+            additional_special_tokens=sft_training_args.additional_special_tokens,
+            trust_remote_code=True,
+        )
 
-    logger.info("Setting up trainer")
-    trainer = SFTTrainer(
-        model,
-        args=training_args,
-        tokenizer=tokenizer,
-        train_dataset=train_dataset,
-        eval_dataset=eval_dataset,
-        dataset_text_field="text",
-        data_collator=collator,
-        peft_config=peft_config,
-        max_seq_length=sft_training_args.max_seq_length,
-    )
+        logger.info("Loading data")
 
-    logger.info("Training")
-    trainer.train()
+        train_dataset = load_datasets(sft_training_args.data_files,sft_training_args.use_wandb_dataset_artifacts)
+        if sft_training_args.eval_data_files:
+            eval_dataset = load_datasets(sft_training_args.eval_data_files,sft_training_args.use_wandb_dataset_artifacts)
+            training_args.do_eval = True
+        else:
+            eval_dataset = None
 
-    logger.info("Saving model")
-    trainer.save_model()
+        logger.info("Formatting prompts")
+        instruction_ids = tokenizer.encode("USER: ", add_special_tokens=False)[1:]
+        response_ids = tokenizer.encode("ASSISTANT: ", add_special_tokens=False)[1:]
+        collator = DataCollatorForCompletionOnlyLM(
+            instruction_template=instruction_ids,
+            response_template=response_ids,
+            tokenizer=tokenizer,
+        )
 
+        logger.info(f"Loading model from {sft_training_args.model_name_or_path}")
+        kwargs = sft_training_args.from_pretrained_kwargs(training_args)
+        logger.debug(
+            f"AutoModelForCausalLM.from_pretrained({sft_training_args.model_name_or_path}, trust_remote_code=True, **kwargs={kwargs})"
+        )
+        model = AutoModelForCausalLM.from_pretrained(
+            sft_training_args.model_path,
+            trust_remote_code=True,
+            **kwargs,
+        )
+
+        peft_config: Optional[LoraConfig] = None
+        if sft_training_args.use_peft:
+            logger.info("Setting up LoRA")
+            peft_config = LoraConfig(
+                r=sft_training_args.peft_lora_r,
+                target_modules=sft_training_args.peft_target_modules,
+                lora_alpha=sft_training_args.peft_lora_alpha,
+                lora_dropout=sft_training_args.peft_lora_dropout,
+                fan_in_fan_out=True,
+                bias="none",
+                task_type="CAUSAL_LM",
+            )
+            if training_args.gradient_checkpointing:
+                for param in model.parameters():
+                    param.requires_grad = False
+                    if param.ndim == 1:
+                        param.data = param.data.to(torch.float32)
+                model.gradient_checkpointing_enable()
+                model.enable_input_require_grads()
+
+        logger.info("Setting up trainer")
+        trainer = SFTTrainer(
+            model,
+            args=training_args,
+            tokenizer=tokenizer,
+            train_dataset=train_dataset,
+            eval_dataset=eval_dataset,
+            dataset_text_field="text",
+            data_collator=collator,
+            peft_config=peft_config,
+            report_to="wandb",
+            max_seq_length=sft_training_args.max_seq_length,
+        )
+
+        logger.info("Training")
+        trainer.train()
+
+        #logger.info("Saving model")
+        #trainer.save_model()
+
+    def load_datasets(data_files, use_artifacts=False):
+        datasets = []
+        if use_artifacts:
+            data_files = run.use_artifact(data_files).download()
+        for data_file in data_files:
+            dataset = load_dataset("json", data_files=data_file)
+            dataset = dataset["train"]
+            dataset = dataset.select_columns("text")
+            datasets.append(dataset)
+        return concatenate_datasets(datasets)
 
 if __name__ == "__main__":
     logging.basicConfig(
