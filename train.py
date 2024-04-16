@@ -38,8 +38,6 @@ class SFTTrainingArguments:
     peft_lora_r: int = 8
     peft_lora_alpha: int = 32
     peft_lora_dropout: float = 0.05
-    use_wandb_dataset_artifacts: bool = False
-    use_wandb_model_artifacts: bool = False
 
     def __post_init__(self):
         if self.load_in_8bit and self.load_in_4bit:
@@ -96,19 +94,15 @@ class SFTTrainingArguments:
         kwargs["use_flash_attention_2"] = self.use_flash_attention_2
         return kwargs
 
-
-
-
 def main() -> None:
     with wandb.init() as run:
         parser = HfArgumentParser((TrainingArguments, SFTTrainingArguments))
         training_args, sft_training_args = parser.parse_args_into_dataclasses()
 
-        if sft_training_args.use_wandb_model_artifacts:
-            model_artifact = run.use_artifact(sft_training_args.model.artifacts_path)
-            model_path = model_artifact.download()
-        else:
-            model_path = sft_training_args.model_name_or_path
+        
+        model_artifact = run.use_artifact(sft_training_args.model.artifacts_path)
+        model_path = model_artifact.download()
+        #model_path = sft_training_args.model_name_or_path
 
         tokenizer_name_or_path: str = (
             sft_training_args.tokenizer_name_or_path or model_path
@@ -123,9 +117,9 @@ def main() -> None:
 
         logger.info("Loading data")
 
-        train_dataset = load_datasets(sft_training_args.data_files,sft_training_args.use_wandb_dataset_artifacts)
+        train_dataset = load_datasets(sft_training_args.data_files, True)
         if sft_training_args.eval_data_files:
-            eval_dataset = load_datasets(sft_training_args.eval_data_files,sft_training_args.use_wandb_dataset_artifacts)
+            eval_dataset = load_datasets(sft_training_args.eval_data_files, True)
             training_args.do_eval = True
         else:
             eval_dataset = None
