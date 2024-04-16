@@ -2,6 +2,7 @@ import logging
 from dataclasses import dataclass
 from typing import Optional
 
+from peft import PeftModel
 import torch
 import wandb
 from peft import LoraConfig
@@ -38,6 +39,8 @@ class SFTTrainingArguments:
     peft_lora_r: int = 8
     peft_lora_alpha: int = 32
     peft_lora_dropout: float = 0.05
+    use_model_wandb_artifacts: bool = True
+    use_dataset_wandb_artifacts: bool = True
 
     def __post_init__(self):
         if self.load_in_8bit and self.load_in_4bit:
@@ -93,16 +96,18 @@ class SFTTrainingArguments:
             kwargs = {"torch_dtype": torch.float16}
         kwargs["use_flash_attention_2"] = self.use_flash_attention_2
         return kwargs
-
+    
+    
 def main() -> None:
     with wandb.init() as run:
         parser = HfArgumentParser((TrainingArguments, SFTTrainingArguments))
         training_args, sft_training_args = parser.parse_args_into_dataclasses()
 
-        
-        model_artifact = run.use_artifact(sft_training_args.model.artifacts_path)
-        model_path = model_artifact.download()
-        #model_path = sft_training_args.model_name_or_path
+        if sft_training_args.use_model_wandb_artifacts:
+            model_artifact = run.use_artifact(sft_training_args.model_name_or_path)
+            model_path = model_artifact.download()
+        else:
+            model_path = sft_training_args.model_name_or_path
 
         tokenizer_name_or_path: str = (
             sft_training_args.tokenizer_name_or_path or model_path
@@ -116,10 +121,29 @@ def main() -> None:
         )
 
         logger.info("Loading data")
-
-        train_dataset = load_datasets(sft_training_args.data_files, True)
+        train_dataset = []
+        
+        for data_file in sft_training_args.data_files:
+            if sft_training_args.use_dataset_wandb_artifacts:
+                artifact_dir = run.use_artifact(data_file).download()
+                data_file = artifact_dir+f"/AnswerCarefullyVersion000_Dev_transformed.json"
+            dataset = load_dataset("json", data_files=data_file)
+            dataset = dataset["train"]
+            dataset = dataset.select_columns("text")
+            train_dataset.append(dataset)
+        train_dataset = concatenate_datasets(train_dataset)
+                
         if sft_training_args.eval_data_files:
-            eval_dataset = load_datasets(sft_training_args.eval_data_files, True)
+            eval_dataset = []
+            for data_file in sft_training_args.eval_data_files:
+                if sft_training_args.use_dataset_wandb_artifacts:
+                    artifact_dir = run.use_artifact(data_file).download()
+                    data_file = artifact_dir+f"/AnswerCarefullyVersion000_Dev_transformed.json"
+                dataset = load_dataset("json", data_files=data_file)
+                dataset = dataset["train"]
+                dataset = dataset.select_columns("text")
+                eval_dataset.append(dataset)
+            eval_dataset = concatenate_datasets(eval_dataset)
             training_args.do_eval = True
         else:
             eval_dataset = None
@@ -139,7 +163,7 @@ def main() -> None:
             f"AutoModelForCausalLM.from_pretrained({sft_training_args.model_name_or_path}, trust_remote_code=True, **kwargs={kwargs})"
         )
         model = AutoModelForCausalLM.from_pretrained(
-            sft_training_args.model_path,
+            model_path,
             trust_remote_code=True,
             **kwargs,
         )
@@ -163,8 +187,10 @@ def main() -> None:
                         param.data = param.data.to(torch.float32)
                 model.gradient_checkpointing_enable()
                 model.enable_input_require_grads()
+        
 
         logger.info("Setting up trainer")
+        training_args.report_to=["wandb"]
         trainer = SFTTrainer(
             model,
             args=training_args,
@@ -174,26 +200,26 @@ def main() -> None:
             dataset_text_field="text",
             data_collator=collator,
             peft_config=peft_config,
-            report_to="wandb",
             max_seq_length=sft_training_args.max_seq_length,
         )
 
         logger.info("Training")
         trainer.train()
 
-        #logger.info("Saving model")
-        #trainer.save_model()
+        logger.info("Saving model")
+        trainer.save_model()
+        
+        base_model = AutoModelForCausalLM.from_pretrained(model_path, torch_dtype="auto")
+        model = PeftModel.from_pretrained(base_model, "./output")
+        model_finetuned = model.merge_and_unload()
+        
+        model_finetuned.save_pretrained("finetuned_model")
+        tokenizer.save_pretrained("finetuned_model")
+        artifact = wandb.Artifact("cyberagent-calm2-7b-chat-finetuned", type="model")
+        artifact.add_dir("finetuned_model")
+        run.log_artifact(artifact)
+        
 
-    def load_datasets(data_files, use_artifacts=False):
-        datasets = []
-        if use_artifacts:
-            data_files = run.use_artifact(data_files).download()
-        for data_file in data_files:
-            dataset = load_dataset("json", data_files=data_file)
-            dataset = dataset["train"]
-            dataset = dataset.select_columns("text")
-            datasets.append(dataset)
-        return concatenate_datasets(datasets)
 
 if __name__ == "__main__":
     logging.basicConfig(
