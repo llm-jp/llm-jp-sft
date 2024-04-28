@@ -20,7 +20,6 @@ disable_caching()
 
 logger = logging.getLogger(__name__)
 
-
 @dataclass
 class SFTTrainingArguments:
     model_name_or_path: str
@@ -41,6 +40,9 @@ class SFTTrainingArguments:
     peft_lora_dropout: float = 0.05
     use_model_wandb_artifacts: bool = True
     use_dataset_wandb_artifacts: bool = True
+    training_dataset_wandb_artifacts_filepath: str = None
+    eval_dataset_wandb_artifacts_filepath: str = None
+    model_artifact_name : str = None
 
     def __post_init__(self):
         if self.load_in_8bit and self.load_in_4bit:
@@ -97,6 +99,15 @@ class SFTTrainingArguments:
         kwargs["use_flash_attention_2"] = self.use_flash_attention_2
         return kwargs
     
+def load_datasets(data_files):
+    datasets = []
+    for data_file in data_files:
+        dataset = load_dataset("json", data_files=data_file)
+        dataset = dataset["train"]
+        dataset = dataset.select_columns("text")
+        datasets.append(dataset)
+    return concatenate_datasets(datasets)
+   
     
 def main() -> None:
     with wandb.init() as run:
@@ -121,32 +132,32 @@ def main() -> None:
         )
 
         logger.info("Loading data")
-        train_dataset = []
         
-        for data_file in sft_training_args.data_files:
-            if sft_training_args.use_dataset_wandb_artifacts:
-                artifact_dir = run.use_artifact(data_file).download()
-                data_file = artifact_dir+f"/AnswerCarefullyVersion000_Dev_transformed.json"
+        train_dataset = []
+        if sft_training_args.use_dataset_wandb_artifacts:
+            artifact_dir = run.use_artifact(sft_training_args.data_files).download()
+            data_file = artifact_dir+sft_training_args.training_dataset_wandb_artifacts_filepath
             dataset = load_dataset("json", data_files=data_file)
             dataset = dataset["train"]
             dataset = dataset.select_columns("text")
             train_dataset.append(dataset)
-        train_dataset = concatenate_datasets(train_dataset)
-                
-        if sft_training_args.eval_data_files:
-            eval_dataset = []
-            for data_file in sft_training_args.eval_data_files:
-                if sft_training_args.use_dataset_wandb_artifacts:
-                    artifact_dir = run.use_artifact(data_file).download()
-                    data_file = artifact_dir+f"/AnswerCarefullyVersion000_Dev_transformed.json"
-                dataset = load_dataset("json", data_files=data_file)
-                dataset = dataset["train"]
-                dataset = dataset.select_columns("text")
-                eval_dataset.append(dataset)
+            train_dataset = concatenate_datasets(train_dataset)
+        else:
+            load_datasets(sft_training_args.data_files)
+        
+        eval_dataset = []
+        if sft_training_args.use_dataset_wandb_artifacts:
+            artifact_dir = run.use_artifact(sft_training_args.data_files).download()
+            data_file = artifact_dir+sft_training_args.eval_dataset_wandb_artifacts_filepath
+            dataset = load_dataset("json", data_files=data_file)
+            dataset = dataset["train"]
+            dataset = dataset.select_columns("text")
+            eval_dataset.append(dataset)
             eval_dataset = concatenate_datasets(eval_dataset)
             training_args.do_eval = True
         else:
-            eval_dataset = None
+            load_datasets(sft_training_args.data_files)
+            training_args.do_eval = True
 
         logger.info("Formatting prompts")
         instruction_ids = tokenizer.encode("USER: ", add_special_tokens=False)[1:]
@@ -215,11 +226,13 @@ def main() -> None:
         
         model_finetuned.save_pretrained("finetuned_model")
         tokenizer.save_pretrained("finetuned_model")
-        artifact = wandb.Artifact("cyberagent-calm2-7b-chat-finetuned", type="model")
+        artifact = wandb.Artifact(sft_training_args.model_artifact_name,
+                                  type="model",
+                                  metadata={"training_args":training_args, 
+                                            "sft_training_args":sft_training_args})
         artifact.add_dir("finetuned_model")
         run.log_artifact(artifact)
         
-
 
 if __name__ == "__main__":
     logging.basicConfig(

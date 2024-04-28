@@ -1,8 +1,8 @@
 import wandb
-from transformers import AutoModel, AutoTokenizer, AutoModelForCausalLM
+from transformers import AutoTokenizer, AutoModelForCausalLM
 
 model_name = "cyberagent/calm2-7b-chat"
-project_name = "llm-safety-finetuning"
+project_name = "llm-finetuning-with-high-quality-dataset"
 entity_name = "wandb-japan"
 
 model = AutoModelForCausalLM.from_pretrained(
