@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class SFTTrainingArguments:
     model_name_or_path: str
-    data_files: list[str]
+    data_files: str
     eval_data_files: list[str] = None
     tokenizer_name_or_path: Optional[str] = None
     use_fast: bool = True
@@ -42,7 +42,7 @@ class SFTTrainingArguments:
     use_dataset_wandb_artifacts: bool = True
     training_dataset_wandb_artifacts_filepath: str = None
     eval_dataset_wandb_artifacts_filepath: str = None
-    model_artifact_name : str = None
+    finetuned_model_artifact_name : str = None
 
     def __post_init__(self):
         if self.load_in_8bit and self.load_in_4bit:
@@ -160,8 +160,8 @@ def main() -> None:
             training_args.do_eval = True
 
         logger.info("Formatting prompts")
-        instruction_ids = tokenizer.encode("USER: ", add_special_tokens=False)[1:]
-        response_ids = tokenizer.encode("ASSISTANT: ", add_special_tokens=False)[1:]
+        instruction_ids = tokenizer.encode("USER:", add_special_tokens=False)[1:]
+        response_ids = tokenizer.encode("ASSISTANT:", add_special_tokens=False)[1:]
         collator = DataCollatorForCompletionOnlyLM(
             instruction_template=instruction_ids,
             response_template=response_ids,
@@ -226,7 +226,7 @@ def main() -> None:
         
         model_finetuned.save_pretrained("finetuned_model")
         tokenizer.save_pretrained("finetuned_model")
-        artifact = wandb.Artifact(sft_training_args.model_artifact_name,
+        artifact = wandb.Artifact(sft_training_args.finetuned_model_artifact_name,
                                   type="model",
                                   metadata={"training_args":training_args, 
                                             "sft_training_args":sft_training_args})
