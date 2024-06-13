@@ -30,10 +30,10 @@ pip install flash-attn --no-build-isolation
 A sample dataset is provided in `data/`. A training example is structured as follows:
 
 ```json
-{"text": "### 指示：以下の質問に答えなさい。 ### 質問：日本で一番高い山は？ ### 回答：富士山"}
+{"text": "以下は、タスクを説明する指示です。要求を適切に満たす応答を書きなさい。\n\n### 指示:\n日本で一番高い山は？\n\n### 応答:\n富士山"}
 ```
 
-During training, loss calculation is focused on tokens post the "### 回答：" segment. For the above example, the loss will be based on "富士山".
+During training, loss calculation is focused on tokens post the "### 応答:" segment. For the above example, the loss will be based on "富士山".
 
 ## Training
 
